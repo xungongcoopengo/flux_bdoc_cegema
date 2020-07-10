@@ -19,42 +19,100 @@
             if not subscriber_address and subscriber and subscriber.addresses:
                 subscriber_address = subscriber.addresses[-1]
             covered_element_version = covered_element.get_version_at_date(contract.initial_start_date)
+            to_generate = template and contract and loans and subscriber and covered_element and covered_element_party and covered_element_version
         ?>
-        <TECHDATA py:if="template and contract and loans and subscriber and covered_element and covered_element_party and covered_element_version">
+        <TECHDATA py:if="to_generate">
             <MODELE>${template.code}</MODELE>
-            <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
-            <NOM_ASSURE>${covered_element_party.name}</NOM_ASSURE>
-            <PRENOM_ASSURE>${covered_element_party.first_name}</PRENOM_ASSURE>
-            <DATE_NAISSANCE_ASSURE>${covered_element_party.birth_date.strftime('%Y-%m-%d')}</DATE_NAISSANCE_ASSURE>
-            <ORIGINE>BDOC</ORIGINE>
-            <DOCUMENT_ENTRANT_SORTANT>S</DOCUMENT_ENTRANT_SORTANT>
-            <MOTIF>Document sortant</MOTIF>
-            <SOUS_MOTIF>Archives</SOUS_MOTIF>
-            <SIGNE_ELECTRONIQUEMENT>O</SIGNE_ELECTRONIQUEMENT>
-            <GED>O</GED>
-            <GED_ONBASE>O</GED_ONBASE>
-            <GED_NOM_FICHIER>PROPOSITION_ACCORD_${datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}</GED_NOM_FICHIER>
+            <STATUS_DOCUMENT></STATUS_DOCUMENT>
+            <LISTE_CONTRATS></LISTE_CONTRATS>
+            <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
             <PERIMETRE>EMP</PERIMETRE>
-            <TYPE_DOCUMENT>${template.name}</TYPE_DOCUMENT>
+            <STATUT_CONTRAT></STATUT_CONTRAT>
+            <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
+            <LISTE_ADHERENT></LISTE_ADHERENT>
             <NUM_ADHERENT>${subscriber.code}</NUM_ADHERENT>
             <RAISON_SOCIALE_ADHERENT>${subscriber.name if not subscriber.is_person else ''}</RAISON_SOCIALE_ADHERENT>
             <NOM_ADHERENT>${subscriber.name if subscriber.is_person else ''}</NOM_ADHERENT>
             <PRENOM_ADHERENT>${subscriber.first_name if subscriber.is_person else ''}</PRENOM_ADHERENT>
-            <DATE_RECEPTION>${datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</DATE_RECEPTION>
+            <DATE_NAISSANCE_ADHERENT></DATE_NAISSANCE_ADHERENT>
+            <LISTE_ASSURES></LISTE_ASSURES>
+            <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
+            <NOM_ASSURE>${covered_element_party.name}</NOM_ASSURE>
+            <PRENOM_ASSURE>${covered_element_party.first_name}</PRENOM_ASSURE>
+            <DATE_NAISSANCE_ASSURE>${covered_element_party.birth_date.strftime('%Y-%m-%d')}</DATE_NAISSANCE_ASSURE>
+            <LISTE_APPORTEUR></LISTE_APPORTEUR>
+            <NUM_APPORTEUR></NUM_APPORTEUR>
+            <RAISON_SOCIALE_APPORTEUR></RAISON_SOCIALE_APPORTEUR>
+            <NOM_CONTACT_APPORTEUR></NOM_CONTACT_APPORTEUR>
+            <PRENOM_CONTACT_APPORTEUR></PRENOM_CONTACT_APPORTEUR>
+            <NUM_PLI></NUM_PLI>
+            <ORIGINE>BDOC</ORIGINE>
+            <GARANTIES></GARANTIES>
+            <NUM_ACTE_GESTION></NUM_ACTE_GESTION>
+            <DATE_NUMERISATION></DATE_NUMERISATION>
+            <DATE_ENVOI></DATE_ENVOI>
+            <OBJET_DISTRIBUTION></OBJET_DISTRIBUTION>
+            <NOM_EXPEDITEUR></NOM_EXPEDITEUR>
+            <PRENOM_EXPEDITEUR></PRENOM_EXPEDITEUR>
+            <EMAIL_EXPEDITEUR></EMAIL_EXPEDITEUR>
+            <NOM_DESTINATAIRE_PRINCIPAL></NOM_DESTINATAIRE_PRINCIPAL>
+            <PRENOM_DESTINATAIRE_PRINCIPAL></PRENOM_DESTINATAIRE_PRINCIPAL>
+            <EMAIL_DESTINATAIRE_PRINCIPAL></EMAIL_DESTINATAIRE_PRINCIPAL>
+            <LISTE_DESTINATAIRE_COPIE></LISTE_DESTINATAIRE_COPIE>
+            <NOM_DESTINATAIRE_COPIE></NOM_DESTINATAIRE_COPIE>
+            <PRENOM_DESTINATAIRE_COPIE></PRENOM_DESTINATAIRE_COPIE>
+            <EMAIL_DESTINATAIRE_COPIE></EMAIL_DESTINATAIRE_COPIE>
+            <PARTENAIRE_TPA></PARTENAIRE_TPA>
             <NIVEAU_CONFIDENTIALITE>N/A</NIVEAU_CONFIDENTIALITE>
+            <TYPE_ACTE_GESTION_ASSOCIE></TYPE_ACTE_GESTION_ASSOCIE>
+            <LISTE_PRODUIT></LISTE_PRODUIT>
+            <NOM_PRODUIT></NOM_PRODUIT>
+            <MONTANTS_GARANTIES></MONTANTS_GARANTIES>
+            <DOCUMENT_ENTRANT_SORTANT>S</DOCUMENT_ENTRANT_SORTANT>
+            <RESEAU_DISTRIBUTION></RESEAU_DISTRIBUTION>
+            <PRIORITE></PRIORITE>
+            <DATE_RECEPTION>${datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</DATE_RECEPTION>
+            <COURRIER_AR></COURRIER_AR>
+            <VIP></VIP>
+            <ETAT_DOSSIER></ETAT_DOSSIER>
+            <MOTIF>Document sortant</MOTIF>
+            <SOUS_MOTIF>Archives</SOUS_MOTIF>
+            <ID_TYPE_DOC_COOG_ATTENDU></ID_TYPE_DOC_COOG_ATTENDU>
+            <TYPE_DOC_COOG_ATTENDU></TYPE_DOC_COOG_ATTENDU>
+            <STATUT_TYPE_DOC_COOG_ATTENDU></STATUT_TYPE_DOC_COOG_ATTENDU>
+            <DATERECEPTION_TYPE_DOC_COOG_ATTENDU></DATERECEPTION_TYPE_DOC_COOG_ATTENDU>
+            <TYPE_RENS_COMPLEMENTAIRE></TYPE_RENS_COMPLEMENTAIRE>
+            <AFFICHAGE_COURTIER></AFFICHAGE_COURTIER>
+            <AFFICHAGE_ASSURE></AFFICHAGE_ASSURE>
+            <AFFICHAGE_GESTION></AFFICHAGE_GESTION>
+            <TYPE_QUESTIONNAIRE></TYPE_QUESTIONNAIRE>
+            <SIGNE_ELECTRONIQUEMENT>O</SIGNE_ELECTRONIQUEMENT>
+            <ORIGINAL></ORIGINAL>
+            <STREAM></STREAM>
+            <RESEAU></RESEAU>
+            <MARQUE_CONTRAT></MARQUE_CONTRAT>
+            <TYPE_DOCUMENT>${template.name}</TYPE_DOCUMENT>
+            <ID_DEMANDE></ID_DEMANDE>
+            <AFFICHAGE_APPORTEUR></AFFICHAGE_APPORTEUR>
+            <MODE_DISTRIBUTION></MODE_DISTRIBUTION>
+            <DATELIMITE_TRAITEMENT></DATELIMITE_TRAITEMENT>
+            <ETAPE_CONTRAT></ETAPE_CONTRAT>
+            <GED>O</GED>
+            <GED_ONBASE>O</GED_ONBASE>
+            <GED_NOM_FICHIER>PROPOSITION_ACCORD_${datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}</GED_NOM_FICHIER>
+            <IDENTIFIANT_DOCUMENT_UNIQUE></IDENTIFIANT_DOCUMENT_UNIQUE>
         </TECHDATA>
-        <QR_CODE>
+        <QR_CODE py:if="to_generate">
             <TYPE_DOCUMENT>${template.name}</TYPE_DOCUMENT>
             <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
         </QR_CODE>
-        <GENERAL>
+        <GENERAL py:if="to_generate">
             <NUM_ADHESION>${contract.contract_number or contract.quote_number}</NUM_ADHESION>
             <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
-            <DATE_EFFET_GARANTIES>${contract.initial_start_date.strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
             <NUM_PAC>Action Cegema: quelle valeur ce champs?</NUM_PAC>
         </GENERAL>
-        <ADHERENT py:if="subscriber.is_person" >
+        <ADHERENT py:if="to_generate and subscriber.is_person" >
             <NOM_ADH>${subscriber.name}</NOM_ADH>
             <PRENOM_ADH>${subscriber.first_name}</PRENOM_ADH>
             <ADRESSE_ADH>${subscriber_address.street if subscriber_address else ''}</ADRESSE_ADH>
@@ -62,7 +120,7 @@
             <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
         </ADHERENT>
-        <ADHERENT_SCI py:if="not subscriber.is_person" >
+        <ADHERENT_SCI py:if="to_generate and not subscriber.is_person" >
             <RAISON_SOCIALE>${subscriber.name}</RAISON_SOCIALE>
             <SIREN>${subscriber.siren}</SIREN>
             <ADRESSE_SCI>${subscriber_address.street if subscriber_address else ''}</ADRESSE_SCI>
@@ -70,7 +128,7 @@
             <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
         </ADHERENT_SCI>
-        <EMPRUNTEUR_ASSURE>
+        <EMPRUNTEUR_ASSURE py:if="to_generate">
             <CIVILITE>${covered_element_party.gender_string}</CIVILITE>
             <NOM>${covered_element_party.name}</NOM>
             <NOM_DE_NAISSANCE>${covered_element_party.birth_name}</NOM_DE_NAISSANCE>
@@ -89,7 +147,7 @@
             <FUMEUR>${covered_element_version.extra_data_string.get('fumeur', '')}</FUMEUR>
             <SITUATION_FAMILIALE>${covered_element_party.extra_data_string.get('situation_familiale', '')}</SITUATION_FAMILIALE>
         </EMPRUNTEUR_ASSURE>
-        <ORGANISMES_PRETEURS>
+        <ORGANISMES_PRETEURS py:if="to_generate">
             <ORGANISME_PRETEUR_IT py:for="loan_index, loan in enumerate(loans)">
                 <DENOMINATION_PRETEUR>${loan.lender.commercial_name if loan.lender else ''}</DENOMINATION_PRETEUR>
                 <AGENCE>${loan.lender_address.bank_agency.name if loan.lender_address and loan.lender_address.bank_agency else ''}</AGENCE>
@@ -97,7 +155,7 @@
                 <ORDRE_DU_PRET>Prêt ${loan_index + 1}</ORDRE_DU_PRET>
             </ORGANISME_PRETEUR_IT>
         </ORGANISMES_PRETEURS>
-        <CARACTERISTIQUES_DU_FINANCEMENT>
+        <CARACTERISTIQUES_DU_FINANCEMENT py:if="to_generate">
             <CARACTERISTIQUE_DU_FINANCEMENT py:for="loan_index, loan in enumerate(loans)">
                 <ORDRE_DU_PRET>Prêt ${loan_index + 1}</ORDRE_DU_PRET>
                 <MONTANT>${loan.amount}</MONTANT>
@@ -106,11 +164,11 @@
                 <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
                 <DUREE>${loan.duration} ${loan.duration_unit_string}</DUREE>
                 <DUREE_DIFFERE>${loan.deferral_duration if loan.deferral_duration else '0'} ${loan.duration_unit_string}</DUREE_DIFFERE>
-                <MONTANT_ECHEANCES></MONTANT_ECHEANCES>
-                <DATE_EFFET_PRET>${loan.funds_release_date}</DATE_EFFET_PRET>
+                <MONTANT_ECHEANCES>${loan.payments[1].amount if loan.payments and (len(payments) > 1) else 0}</MONTANT_ECHEANCES>
+                <DATE_EFFET_PRET>${loan.funds_release_date.strftime('%Y-%m-%d')}</DATE_EFFET_PRET>
             </CARACTERISTIQUE_DU_FINANCEMENT>
         </CARACTERISTIQUES_DU_FINANCEMENT>    
-        <DETAILS_DES_GARANTIES_OPTIONS>
+        <DETAILS_DES_GARANTIES_OPTIONS py:if="to_generate">
             <DETAILS_DES_GARANTIES_OPTIONS_IT py:for="loan_index, loan in enumerate(loans)">
                 <?python
                 codes_options = {'slade_dc': "Décès", 'slade_ptia': "Perte totale et irréversible d'automonie", 'slade_ipp': "Invalidité permanente partielle",
@@ -129,7 +187,6 @@
                         elif option.coverage.code in codes_mno_sports.keys() and shares[-1].share > 0:
                             if option.coverage.code == 'slade_mno':
                                 mno_option = shares[-1].extra_data.get('slade_mno_option', None)
-                                print(mno_option)
                                 if mno_option == 'serenite_plus':
                                     loan_mno_sport_code[option.coverage.code] = 'Dos/Psy (Sérénité +)'
                                 elif mno_option == 'serenite':
@@ -154,7 +211,7 @@
                    <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code.keys()">
                         <GARANTIE>${codes_options.get(garantie_code, '')}</GARANTIE>
                         <DECISION_ASSUREUR>${loan_options_decision.get(garantie_code, '')}</DECISION_ASSUREUR>
-                        <QUOTITE>${loan_options_code.get(garantie_code, Decimal(0))}</QUOTITE>
+                        <QUOTITE>${int(loan_options_code.get(garantie_code) * 100) if loan_options_code.get(garantie_code, None) else None}</QUOTITE>
                     </DETAIL_DE_GARANTIE>
                 </DETAILS_DES_GARANTIES>
                 <OPTIONS>
@@ -172,7 +229,7 @@
                     franchise_pe = ''
                     carence_pe = ''
                     type_ipt = ''
-                    for s in [s for option in contract.get_all_options() for s in option.get_shares_at_date(contract.initial_start_date) if s.loan == loan]:
+                    for s in [s for option in contract.get_all_options() for s in option.get_shares_at_date(contract.initial_start_date) if s.loan == loan and s.share]:
                         if s.extra_data_string.get('franchise_itt_slade', None):
                             franchise_itt = s.extra_data_string.get('franchise_itt_slade', '')
                         if s.extra_data_string.get('franchise_pe_slade', None):
@@ -196,12 +253,12 @@
                 </ORGANISME_BENEFICIAIRE>
             </DETAILS_DES_GARANTIES_OPTIONS_IT>
         </DETAILS_DES_GARANTIES_OPTIONS>
-        <ECHEANCIERS_DES_COTISATIONS_PRET py:for="loan_index, loan in enumerate(loans)">
+        <ECHEANCIERS_DES_COTISATIONS_PRET py:for="loan_index, loan in enumerate(loans) if to_generate else []">
             <?python
             cur_start_date = contract.initial_start_date
             end_date = cur_start_date
             for option in contract.get_all_options():
-                option_end_dates = [s.end_date for s in option.loan_shares if s.loan == loan]
+                option_end_dates = [s.end_date for s in option.loan_shares if s.loan == loan and s.share]
                 option_end_dates.append(end_date)
                 end_date = max(option_end_dates)
 
@@ -287,8 +344,8 @@
             <TOTAL_GENERAL_IPP_IPT_ITT_S>${total_cotisation_itip_standard + total_cotisation_itip_extra_premium}</TOTAL_GENERAL_IPP_IPT_ITT_S>
             <TOTAL_GENERAL_COTISATION_ANNUELLE_S>${total_cotisation_total_standard + total_cotisation_total_extra_premium}</TOTAL_GENERAL_COTISATION_ANNUELLE_S>
             <TOTAL_GENERAL_DONT_OPTIONS_S>${total_cotisation_option_standard + total_cotisation_option_extra_premium}</TOTAL_GENERAL_DONT_OPTIONS_S>
-            <TAEA_SD></TAEA_SD>
-            <TAEA_S>${loan.get_taea_for_contract(contract)}</TAEA_S>
+            <TAEA_SD>Action Cegema: valeur à determiner dans extra_data ou customer_data</TAEA_SD>
+            <TAEA_S>${round(loan.get_taea_for_contract(contract), 10)}</TAEA_S>
             <ECHEANCIERS_DES_COTISATIONS>
                 <ECHEANCIER_DES_COTISATIONS py:for="index_year, year in enumerate(contract_years)">
                     <ECHEANCE>Année ${index_year + 1}</ECHEANCE>
