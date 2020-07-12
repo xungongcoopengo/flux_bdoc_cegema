@@ -110,7 +110,7 @@
             <NUM_ADHESION>${contract.contract_number or contract.quote_number}</NUM_ADHESION>
             <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
-            <NUM_PAC>Action Cegema: quelle valeur ce champs?</NUM_PAC>
+            <NUM_PAC>Valeur à venir</NUM_PAC>
         </GENERAL>
         <ADHERENT py:if="to_generate and subscriber.is_person" >
             <NOM_ADH>${subscriber.name}</NOM_ADH>
@@ -142,14 +142,14 @@
             <VILLE_DE_NAISSANCE>${covered_element_party.birth_city if covered_element_party.birth_city else ''}</VILLE_DE_NAISSANCE>
             <PAYS_DE_NAISSANCE>${covered_element_party.birth_country.name}</PAYS_DE_NAISSANCE>
             <DATE_DE_NAISSANCE>${covered_element_party.birth_date.strftime('%d/%m/%Y')}</DATE_DE_NAISSANCE>
-            <PROFESSION_EXACTE>${covered_element_version.extra_data_string.get('profession_specifique', '')}</PROFESSION_EXACTE>
+            <PROFESSION>${covered_element_party.extra_data_string.get('profession_exacte', '')}</PROFESSION>
             <CATEGORIE_PROFESSIONNELLE>${covered_element_version.extra_data_string.get('categorie_professionnelle', '')}</CATEGORIE_PROFESSIONNELLE>
             <FUMEUR>${covered_element_version.extra_data_string.get('fumeur', '')}</FUMEUR>
             <SITUATION_FAMILIALE>${covered_element_party.extra_data_string.get('situation_familiale', '')}</SITUATION_FAMILIALE>
         </EMPRUNTEUR_ASSURE>
         <ORGANISMES_PRETEURS py:if="to_generate">
             <ORGANISME_PRETEUR_IT py:for="loan_index, loan in enumerate(loans)">
-                <DENOMINATION_PRETEUR>${loan.lender.commercial_name if loan.lender else ''}</DENOMINATION_PRETEUR>
+                <DENOMINATION_PRETEUR>${loan.lender.name if loan.lender else ''}</DENOMINATION_PRETEUR>
                 <AGENCE>${loan.lender_address.bank_agency.name if loan.lender_address and loan.lender_address.bank_agency else ''}</AGENCE>
                 <ADRESSE_PRETEUR>${loan.lender_address.full_address if loan.lender_address else ''}</ADRESSE_PRETEUR>
                 <ORDRE_DU_PRET>Prêt ${loan_index + 1}</ORDRE_DU_PRET>
@@ -164,7 +164,7 @@
                 <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
                 <DUREE>${loan.duration} ${loan.duration_unit_string}</DUREE>
                 <DUREE_DIFFERE>${loan.deferral_duration if loan.deferral_duration else '0'} ${loan.duration_unit_string}</DUREE_DIFFERE>
-                <MONTANT_ECHEANCES>${loan.payments[1].amount if loan.payments and (len(payments) > 1) else 0}</MONTANT_ECHEANCES>
+                <MONTANT_ECHEANCES>${loan.increments[0].payment_amount if loan.increments else 0}</MONTANT_ECHEANCES>
                 <DATE_EFFET_PRET>${loan.funds_release_date.strftime('%Y-%m-%d')}</DATE_EFFET_PRET>
             </CARACTERISTIQUE_DU_FINANCEMENT>
         </CARACTERISTIQUES_DU_FINANCEMENT>    

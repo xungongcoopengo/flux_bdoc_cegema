@@ -198,7 +198,7 @@
             <VILLE_DE_NAISSANCE>${covered_element_party.birth_city if covered_element_party.birth_city else ''}</VILLE_DE_NAISSANCE>
             <PAYS_DE_NAISSANCE>${covered_element_party.birth_country.name}</PAYS_DE_NAISSANCE>
             <DATE_DE_NAISSANCE>${covered_element_party.birth_date.strftime('%d/%m/%Y')}</DATE_DE_NAISSANCE>
-            <PROFESSION_SPECIFIQUE>${covered_element_version.extra_data_string.get('profession_specifique', '')}</PROFESSION_SPECIFIQUE>
+            <PROFESSION_SPECIFIQUE>${covered_element_party.extra_data_string.get('profession_exacte', '')}</PROFESSION_SPECIFIQUE>
             <CATEGORIE_PROFESSIONNELLE>${covered_element_version.extra_data_string.get('categorie_professionnelle', '')}</CATEGORIE_PROFESSIONNELLE>
             <FUMEUR>${covered_element_version.extra_data_string.get('fumeur', '')}</FUMEUR>
             <SITUATION_FAMILIALE>${covered_element_party.extra_data_string.get('situation_familiale', '')}</SITUATION_FAMILIALE>
@@ -231,14 +231,17 @@
             <PAYS_ADH>${subscriber_address.country.name if not subscriber.is_person and subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
         </ADHERENT_SCI>
         <ORGANISME_PRETEUR py:if="to_generate">
-            <DENOMINATION_PRETEUR>${loan.lender.commercial_name if loan.lender else ''}</DENOMINATION_PRETEUR>
+            <DENOMINATION_PRETEUR>${loan.lender.name if loan.lender else ''}</DENOMINATION_PRETEUR>
             <AGENCE>${loan.lender_address.bank_agency.name if loan.lender_address and loan.lender_address.bank_agency else ''}</AGENCE>
             <ADRESSE_PRETEUR>${loan.lender_address.full_address if loan.lender_address else ''}</ADRESSE_PRETEUR>
         </ORGANISME_PRETEUR>
         <GARANTIES py:if="to_generate">
+            <?python
+                possible_frequencies = {'month': 'Mensuelle', 'quarter': 'Trimestrielle', 'half_year': 'Semestrielle', 'year': 'Annuelle'}
+            ?>
             <DATE_DE_CESSATIONS_DES_GARANTIES>${max([option.end_date for option in loan_options]).strftime('%d/%m/%Y')}</DATE_DE_CESSATIONS_DES_GARANTIES>
             <PERIODICITE_DES_COTISATIONS>${contract.billing_information.billing_mode.frequency_string if contract.billing_information and contract.billing_information.billing_mode else ''}</PERIODICITE_DES_COTISATIONS>
-            <PERIODICITE_DES_ECHEANCES>${loan.payment_frequency_string if loan.payment_frequency else ''}</PERIODICITE_DES_ECHEANCES>
+            <PERIODICITE_DES_ECHEANCES>${possible_frequencies.get(loan.payment_frequency, '') if loan.payment_frequency else ''}</PERIODICITE_DES_ECHEANCES>
             <OPTIONS_SERENITE>${'' if 'slade_mno' not in loan_options_code.keys() else [s for option in contract.get_all_options() for s in option.get_shares_at_date(effective_date) if s.loan == loan][-1].extra_data_string.get('slade_mno_option', '')}</OPTIONS_SERENITE>
             <OPTIONS_SPORT>${'Sport +' if 'slade_sport' in loan_options_code.keys() else ''}</OPTIONS_SPORT>
             <DETAIL_DES_CONDITIONS>${'1' if any([o.exclusions or o.extra_premiums for o in loan_options]) else '0'}</DETAIL_DES_CONDITIONS>
