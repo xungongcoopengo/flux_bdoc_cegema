@@ -5,10 +5,15 @@
     from trytond.modules.coog_core import coog_date
 ?>
 <ROOT xmlns:py="http://genshi.edgewall.org/">
-    <DOCUMENT py:for="contract in objects">
+    <DOCUMENT py:for="contract_loan in objects">
         <?python
             template = Pool().get('report.template')(id=doc_template[0])
-            loans = contract.used_loans
+            contract = contract_loan.contract
+            loan = contract_loan.loan
+            index_loan = 0
+            for index, current_loan in enumerate(contract.used_loans):
+                if current_loan.id == loan.id:
+                    index_loan = index + 1
             covered_element = contract.covered_elements[0] if contract.covered_elements else None
             covered_element_party = covered_element.party if covered_element else None
             subscriber = contract.subscriber if contract else None
@@ -19,32 +24,75 @@
             if not subscriber_address and subscriber and subscriber.addresses:
                 subscriber_address = subscriber.addresses[-1]
             covered_element_version = covered_element.get_version_at_date(contract.initial_start_date)
-            to_generate = template and contract and loans and subscriber and covered_element and covered_element_party and covered_element_version
+            to_generate = template and contract and loan and index_loan > 0 and subscriber and covered_element and covered_element_party and covered_element_version
+
+            codes_options = {'slade_dc': "Décès (DC)", 'slade_ptia': "Perte Totale et Irréversible d'Automonie (PTIA)", 'slade_ipp': "Invalidité Permanente Partielle (IPP)",
+                                 'slade_ipt': "Invalidité Termanente et Totale (IPT)", 'slade_ippro': "Invalidité Termanente et Totale (IPT)", 'slade_itt': "Incapacité Totale de Travail (ITT)"}
+            codes_mno_sports = {'slade_mno': "Sérénité ou Sérénité +", 'slade_sport': "Sport +"}
+            loan_options_code = {}
+            loan_options_decision = {}
+            loan_mno_sport_code = {}
+            loan_mno_sport_decision = {}
+            options_extra_premiums = {}
+            decision_subscriber = ''
+            for option in contract.get_all_options():
+                shares = [s for s in option.get_shares_at_date(contract.initial_start_date, False) if s.loan == loan]
+                if shares:
+                    options_extra_premiums[option.coverage.code] = option.extra_premiums[-1].motive.name if option.extra_premiums and option.extra_premiums[-1].motive else None
+                    if option.coverage.code in codes_options.keys():
+                        loan_options_code[option.coverage.code] = shares[-1].share
+                        loan_options_decision[option.coverage.code] = None
+                    elif option.coverage.code in codes_mno_sports.keys() and shares[-1].share > 0:
+                        if option.coverage.code == 'slade_mno':
+                            mno_option = shares[-1].extra_data.get('slade_mno_option', None)
+                            if mno_option == 'serenite_plus':
+                                loan_mno_sport_code[option.coverage.code] = 'Dos/Psy (Sérénité +)'
+                            elif mno_option == 'serenite':
+                                loan_mno_sport_code[option.coverage.code] = 'Dos (Sérénité)'
+                            else:
+                                loan_mno_sport_code[option.coverage.code] = ''
+                        elif option.coverage.code == 'slade_sport':
+                                loan_mno_sport_code[option.coverage.code] = 'Sport +'
+                        loan_mno_sport_decision[option.coverage.code] = None
+                    if contract.underwritings:
+                        for cu in contract.underwritings:
+                            decision_subscriber = cu.subscriber_decision_translated
+                            if cu.underwriting_options:
+                                for cuo in cu.underwriting_options:
+                                    if cuo.option.id == option.id:
+                                        if option.coverage.code in codes_options.keys():
+                                            loan_options_decision[option.coverage.code] = cuo.decision.name if cuo.decision else ''
+                                        if option.coverage.code in codes_mno_sports.keys():
+                                            loan_mno_sport_decision[option.coverage.code] = cuo.decision.name if cuo.decision else ''
         ?>
         <TECHDATA py:if="to_generate">
             <MODELE>${template.code}</MODELE>
             <STATUS_DOCUMENT></STATUS_DOCUMENT>
-            <LISTE_CONTRATS></LISTE_CONTRATS>
-            <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
-            <PERIMETRE>EMP</PERIMETRE>
-            <STATUT_CONTRAT></STATUT_CONTRAT>
-            <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
-            <LISTE_ADHERENT></LISTE_ADHERENT>
-            <NUM_ADHERENT>${subscriber.code}</NUM_ADHERENT>
-            <RAISON_SOCIALE_ADHERENT>${subscriber.name if not subscriber.is_person else ''}</RAISON_SOCIALE_ADHERENT>
-            <NOM_ADHERENT>${subscriber.name if subscriber.is_person else ''}</NOM_ADHERENT>
-            <PRENOM_ADHERENT>${subscriber.first_name if subscriber.is_person else ''}</PRENOM_ADHERENT>
-            <DATE_NAISSANCE_ADHERENT></DATE_NAISSANCE_ADHERENT>
-            <LISTE_ASSURES></LISTE_ASSURES>
-            <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
-            <NOM_ASSURE>${covered_element_party.name}</NOM_ASSURE>
-            <PRENOM_ASSURE>${covered_element_party.first_name}</PRENOM_ASSURE>
-            <DATE_NAISSANCE_ASSURE>${covered_element_party.birth_date.strftime('%Y-%m-%d')}</DATE_NAISSANCE_ASSURE>
-            <LISTE_APPORTEUR></LISTE_APPORTEUR>
-            <NUM_APPORTEUR></NUM_APPORTEUR>
-            <RAISON_SOCIALE_APPORTEUR></RAISON_SOCIALE_APPORTEUR>
-            <NOM_CONTACT_APPORTEUR></NOM_CONTACT_APPORTEUR>
-            <PRENOM_CONTACT_APPORTEUR></PRENOM_CONTACT_APPORTEUR>
+            <LISTE_CONTRATS>
+                <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
+                <PERIMETRE>EMP</PERIMETRE>
+                <STATUT_CONTRAT></STATUT_CONTRAT>
+                <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
+            </LISTE_CONTRATS>
+            <LISTE_ADHERENT>
+                <NUM_ADHERENT>${subscriber.code}</NUM_ADHERENT>
+                <RAISON_SOCIALE_ADHERENT>${subscriber.name if not subscriber.is_person else ''}</RAISON_SOCIALE_ADHERENT>
+                <NOM_ADHERENT>${subscriber.name if subscriber.is_person else ''}</NOM_ADHERENT>
+                <PRENOM_ADHERENT>${subscriber.first_name if subscriber.is_person else ''}</PRENOM_ADHERENT>
+                <DATE_NAISSANCE_ADHERENT></DATE_NAISSANCE_ADHERENT>
+            </LISTE_ADHERENT>
+            <LISTE_ASSURES>
+                <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
+                <NOM_ASSURE>${covered_element_party.name}</NOM_ASSURE>
+                <PRENOM_ASSURE>${covered_element_party.first_name}</PRENOM_ASSURE>
+                <DATE_NAISSANCE_ASSURE>${covered_element_party.birth_date.strftime('%Y-%m-%d')}</DATE_NAISSANCE_ASSURE>
+            </LISTE_ASSURES>
+            <LISTE_APPORTEUR>
+                <NUM_APPORTEUR></NUM_APPORTEUR>
+                <RAISON_SOCIALE_APPORTEUR></RAISON_SOCIALE_APPORTEUR>
+                <NOM_CONTACT_APPORTEUR></NOM_CONTACT_APPORTEUR>
+                <PRENOM_CONTACT_APPORTEUR></PRENOM_CONTACT_APPORTEUR>
+            </LISTE_APPORTEUR>
             <NUM_PLI></NUM_PLI>
             <ORIGINE>BDOC</ORIGINE>
             <GARANTIES></GARANTIES>
@@ -58,15 +106,17 @@
             <NOM_DESTINATAIRE_PRINCIPAL></NOM_DESTINATAIRE_PRINCIPAL>
             <PRENOM_DESTINATAIRE_PRINCIPAL></PRENOM_DESTINATAIRE_PRINCIPAL>
             <EMAIL_DESTINATAIRE_PRINCIPAL></EMAIL_DESTINATAIRE_PRINCIPAL>
-            <LISTE_DESTINATAIRE_COPIE></LISTE_DESTINATAIRE_COPIE>
-            <NOM_DESTINATAIRE_COPIE></NOM_DESTINATAIRE_COPIE>
-            <PRENOM_DESTINATAIRE_COPIE></PRENOM_DESTINATAIRE_COPIE>
-            <EMAIL_DESTINATAIRE_COPIE></EMAIL_DESTINATAIRE_COPIE>
+            <LISTE_DESTINATAIRE_COPIE>
+                <NOM_DESTINATAIRE_COPIE></NOM_DESTINATAIRE_COPIE>
+                <PRENOM_DESTINATAIRE_COPIE></PRENOM_DESTINATAIRE_COPIE>
+                <EMAIL_DESTINATAIRE_COPIE></EMAIL_DESTINATAIRE_COPIE>
+            </LISTE_DESTINATAIRE_COPIE>
             <PARTENAIRE_TPA></PARTENAIRE_TPA>
             <NIVEAU_CONFIDENTIALITE>N/A</NIVEAU_CONFIDENTIALITE>
             <TYPE_ACTE_GESTION_ASSOCIE></TYPE_ACTE_GESTION_ASSOCIE>
-            <LISTE_PRODUIT></LISTE_PRODUIT>
-            <NOM_PRODUIT></NOM_PRODUIT>
+            <LISTE_PRODUIT>
+                <NOM_PRODUIT></NOM_PRODUIT>
+            </LISTE_PRODUIT>
             <MONTANTS_GARANTIES></MONTANTS_GARANTIES>
             <DOCUMENT_ENTRANT_SORTANT>S</DOCUMENT_ENTRANT_SORTANT>
             <RESEAU_DISTRIBUTION></RESEAU_DISTRIBUTION>
@@ -110,7 +160,7 @@
             <NUM_ADHESION>${contract.contract_number or contract.quote_number}</NUM_ADHESION>
             <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
-            <NUM_PAC>Valeur à venir</NUM_PAC>
+            <NUM_PAC>${str(contract.contract_number or contract.quote_number) + '0' + str(index_loan) + '-1'}</NUM_PAC>
         </GENERAL>
         <ADHERENT py:if="to_generate and subscriber.is_person" >
             <NOM_ADH>${subscriber.name}</NOM_ADH>
@@ -147,114 +197,72 @@
             <FUMEUR>${covered_element_version.extra_data_string.get('fumeur', '')}</FUMEUR>
             <SITUATION_FAMILIALE>${covered_element_party.extra_data_string.get('situation_familiale', '')}</SITUATION_FAMILIALE>
         </EMPRUNTEUR_ASSURE>
-        <ORGANISMES_PRETEURS py:if="to_generate">
-            <ORGANISME_PRETEUR_IT py:for="loan_index, loan in enumerate(loans)">
-                <DENOMINATION_PRETEUR>${loan.lender.name if loan.lender else ''}</DENOMINATION_PRETEUR>
-                <AGENCE>${loan.lender_address.bank_agency.name if loan.lender_address and loan.lender_address.bank_agency else ''}</AGENCE>
-                <ADRESSE_PRETEUR>${loan.lender_address.full_address if loan.lender_address else ''}</ADRESSE_PRETEUR>
-                <ORDRE_DU_PRET>Prêt ${loan_index + 1}</ORDRE_DU_PRET>
-            </ORGANISME_PRETEUR_IT>
-        </ORGANISMES_PRETEURS>
-        <CARACTERISTIQUES_DU_FINANCEMENT py:if="to_generate">
-            <CARACTERISTIQUE_DU_FINANCEMENT py:for="loan_index, loan in enumerate(loans)">
-                <ORDRE_DU_PRET>Prêt ${loan_index + 1}</ORDRE_DU_PRET>
-                <MONTANT>${loan.amount}</MONTANT>
-                <TYPE_DE_PRET>${loan.extra_data_string.get('type_de_pret', '')}</TYPE_DE_PRET>
-                <TAUX_HORS_ASSURANCE>${loan.rate*100}%</TAUX_HORS_ASSURANCE>
-                <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
-                <DUREE>${loan.duration} ${loan.duration_unit_string}</DUREE>
-                <DUREE_DIFFERE>${loan.deferral_duration if loan.deferral_duration else '0'} ${loan.duration_unit_string}</DUREE_DIFFERE>
-                <MONTANT_ECHEANCES>${loan.increments[0].payment_amount if loan.increments else 0}</MONTANT_ECHEANCES>
-                <DATE_EFFET_PRET>${loan.funds_release_date.strftime('%Y-%m-%d')}</DATE_EFFET_PRET>
-            </CARACTERISTIQUE_DU_FINANCEMENT>
-        </CARACTERISTIQUES_DU_FINANCEMENT>    
-        <DETAILS_DES_GARANTIES_OPTIONS py:if="to_generate">
-            <DETAILS_DES_GARANTIES_OPTIONS_IT py:for="loan_index, loan in enumerate(loans)">
-                <?python
-                codes_options = {'slade_dc': "Décès", 'slade_ptia': "Perte totale et irréversible d'automonie", 'slade_ipp': "Invalidité permanente partielle",
-                                 'slade_ipt': "Invalidité permanente et totale", 'slade_itt': "Incapacité totale de travail"}
-                codes_mno_sports = {'slade_mno': "Sérénité ou Sérénité +", 'slade_sport': "Sport +"}
-                loan_options_code = {}
-                loan_options_decision = {}
-                loan_mno_sport_code = {}
-                loan_mno_sport_decision = {}
-                for option in contract.get_all_options():
-                    shares = [s for s in option.get_shares_at_date(contract.initial_start_date, False) if s.loan == loan]
-                    if shares:
-                        if option.coverage.code in codes_options.keys():
-                            loan_options_code[option.coverage.code] = shares[-1].share
-                            loan_options_decision[option.coverage.code] = None
-                        elif option.coverage.code in codes_mno_sports.keys() and shares[-1].share > 0:
-                            if option.coverage.code == 'slade_mno':
-                                mno_option = shares[-1].extra_data.get('slade_mno_option', None)
-                                if mno_option == 'serenite_plus':
-                                    loan_mno_sport_code[option.coverage.code] = 'Dos/Psy (Sérénité +)'
-                                elif mno_option == 'serenite':
-                                    loan_mno_sport_code[option.coverage.code] = 'Dos (Sérénité)'
-                                else:
-                                    loan_mno_sport_code[option.coverage.code] = ''
-                            elif option.coverage.code == 'slade_sport':
-                                    loan_mno_sport_code[option.coverage.code] = 'Sport +'
-                            loan_mno_sport_decision[option.coverage.code] = None
-                        if contract.underwritings:
-                            for cu in contract.underwritings:
-                                if cu.underwriting_options:
-                                    for cuo in cu.underwriting_options:
-                                        if cuo.option.id == option.id:
-                                            if option.coverage.code in codes_options.keys():
-                                                loan_options_decision[option.coverage.code] = cuo.decision.name if cuo.decision else ''
-                                            if option.coverage.code in codes_mno_sports.keys():
-                                                loan_mno_sport_decision[option.coverage.code] = cuo.decision.name if cuo.decision else ''
-                ?>
-                <ORDRE_DU_PRET>Prêt ${loan_index + 1}</ORDRE_DU_PRET>
-                <DETAILS_DES_GARANTIES>
-                   <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code.keys()">
-                        <GARANTIE>${codes_options.get(garantie_code, '')}</GARANTIE>
-                        <DECISION_ASSUREUR>${loan_options_decision.get(garantie_code, '')}</DECISION_ASSUREUR>
-                        <QUOTITE>${int(loan_options_code.get(garantie_code) * 100) if loan_options_code.get(garantie_code, None) else None}</QUOTITE>
-                    </DETAIL_DE_GARANTIE>
-                </DETAILS_DES_GARANTIES>
-                <OPTIONS>
-                    <OPTION py:for="option_code in loan_mno_sport_code.keys()">
-                        <OPTION_SOUHAITEE>${loan_mno_sport_code.get(option_code, '')}</OPTION_SOUHAITEE>
-                        <DECISION_OPTION>${loan_mno_sport_decision.get(option_code, '')}</DECISION_OPTION>
-                    </OPTION>
-                </OPTIONS>
-                <GARANTIES_PHRASE>
-                    <ITT>${'1' if loan_options_code.get('slade_itt', None) else '0'}</ITT>
-                    <IPT>${'1' if loan_options_code.get('slade_ipt', None) or loan_options_code.get('slade_ippro', None) else '0'}</IPT>
-                    <IPP>${'1' if loan_options_code.get('slade_ipp', None) else '0'}</IPP>
-                    <?python
-                    franchise_itt = ''
-                    franchise_pe = ''
-                    carence_pe = ''
-                    type_ipt = ''
-                    for s in [s for option in contract.get_all_options() for s in option.get_shares_at_date(contract.initial_start_date) if s.loan == loan and s.share]:
-                        if s.extra_data_string.get('franchise_itt_slade', None):
-                            franchise_itt = s.extra_data_string.get('franchise_itt_slade', '')
-                        if s.extra_data_string.get('franchise_pe_slade', None):
-                            franchise_pe = s.extra_data_string.get('franchise_pe_slade', '')
-                        if s.extra_data_string.get('carence_pe_slade', None):
-                            carence_pe = s.extra_data_string.get('carence_pe_slade', '')
-                        if s.extra_data_string.get('mode_de_versement', None):
-                            type_ipt = s.extra_data_string.get('mode_de_versement', '')
-                    ?>
-                    <FRANCHISE_ITT>${franchise_itt}</FRANCHISE_ITT>
-                    <FRANCHISE_PE>${franchise_pe}</FRANCHISE_PE>
-                    <CARENCE_PE>${carence_pe}</CARENCE_PE>
-                    <TYPE_IPT>${type_ipt}</TYPE_IPT>
-                </GARANTIES_PHRASE>
-                <ORGANISME_BENEFICIAIRE>
-                    <NOM_BENEFICIAIRE>${loan.lender.commercial_name if loan.lender else ''}</NOM_BENEFICIAIRE>
-                    <ADRESSE_BENEFICIAIRE>${loan.lender_address.street if loan.lender_address else ''}</ADRESSE_BENEFICIAIRE>
-                    <CODE_POSTAL_BENEFICIAIRE>${loan.lender_address.zip if loan.lender_address else ''}</CODE_POSTAL_BENEFICIAIRE>
-                    <VILLE_BENEFICIAIRE>${loan.lender_address.city if loan.lender_address else ''}</VILLE_BENEFICIAIRE>
-                    <PAYS_BENEFICIAIRE>${loan.lender_address.country.name if loan.lender_address and loan.lender_address.country else ''}</PAYS_BENEFICIAIRE>
-                </ORGANISME_BENEFICIAIRE>
-            </DETAILS_DES_GARANTIES_OPTIONS_IT>
-        </DETAILS_DES_GARANTIES_OPTIONS>
-        <ECHEANCIERS_DES_COTISATIONS_PRET py:for="loan_index, loan in enumerate(loans) if to_generate else []">
+        <ORGANISME_PRETEURS py:if="to_generate">
+            <DENOMINATION_PRETEUR>${loan.lender.name if loan.lender else ''}</DENOMINATION_PRETEUR>
+            <AGENCE>${loan.lender_address.bank_agency.name if loan.lender_address and loan.lender_address.bank_agency else ''}</AGENCE>
+            <ADRESSE_PRETEUR>${loan.lender_address.full_address if loan.lender_address else ''}</ADRESSE_PRETEUR>
+        </ORGANISME_PRETEURS>
+        <INFORMATIONS_DU_PRET py:if="to_generate">
+            <MONTANT>${loan.amount}</MONTANT>
+            <TYPE_DE_PRET>${loan.extra_data_string.get('type_de_pret', '')}</TYPE_DE_PRET>
+            <TAUX_HORS_ASSURANCE>${loan.rate*100}%</TAUX_HORS_ASSURANCE>
+            <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
+            <DUREE>${loan.duration} ${loan.duration_unit_string}</DUREE>
+            <DUREE_DIFFERE>${loan.deferral_duration if loan.deferral_duration else '0'} ${loan.duration_unit_string}</DUREE_DIFFERE>
+            <MONTANT_ECHEANCES_LOYER>${loan.increments[0].payment_amount if loan.increments else 0}</MONTANT_ECHEANCES_LOYER>
+            <MONTANT_ECRETEMENT></MONTANT_ECRETEMENT>
+            <DATE_EFFET_PRET>${loan.funds_release_date.strftime('%Y-%m-%d')}</DATE_EFFET_PRET>
+        </INFORMATIONS_DU_PRET>    
+        <DETAILS_DES_GARANTIES py:if="to_generate">
+           <DETAIL_DE_GARANTIE py:for="garantie_code in codes_options.keys()">
+                <GARANTIE>${codes_options.get(garantie_code, '')}</GARANTIE>
+                <DECISION_ASSUREUR>${decision_subscriber}</DECISION_ASSUREUR>
+                <QUOTITE>${int(loan_options_code.get(garantie_code) * 100) if loan_options_code.get(garantie_code, None) else None}</QUOTITE>
+                <DECISION_ANALYSE_DE_RISQUE>${loan_options_decision.get(garantie_code, '')}</DECISION_ANALYSE_DE_RISQUE>
+                <SURPRIME>${'Oui' if options_extra_premiums.get(garantie_code, None) else 'Non'}</SURPRIME>
+                <MOTIF>${options_extra_premiums.get(garantie_code, '')}</MOTIF>
+            </DETAIL_DE_GARANTIE>
+        </DETAILS_DES_GARANTIES>
+        <OPTIONS py:if="to_generate">
+            <OPTION py:for="option_code in loan_mno_sport_code.keys()">
+                <OPTION_SOUHAITEE>${loan_mno_sport_code.get(option_code, '')}</OPTION_SOUHAITEE>
+                <DECISION_OPTION>${loan_mno_sport_decision.get(option_code, '')}</DECISION_OPTION>
+            </OPTION>
+        </OPTIONS>
+        <GARANTIES_PHRASE py:if="to_generate">
+            <ITT>${'1' if loan_options_code.get('slade_itt', None) else '0'}</ITT>
+            <IPT>${'1' if loan_options_code.get('slade_ipt', None) or loan_options_code.get('slade_ippro', None) else '0'}</IPT>
+            <IPP>${'1' if loan_options_code.get('slade_ipp', None) else '0'}</IPP>
             <?python
+            franchise_itt = ''
+            franchise_pe = ''
+            carence_pe = ''
+            type_ipt = ''
+            for s in [s for option in contract.get_all_options() for s in option.get_shares_at_date(contract.initial_start_date) if s.loan == loan and s.share]:
+                if s.extra_data_string.get('franchise_itt_slade', None):
+                    franchise_itt = s.extra_data_string.get('franchise_itt_slade', '')
+                if s.extra_data_string.get('franchise_pe_slade', None):
+                    franchise_pe = s.extra_data_string.get('franchise_pe_slade', '')
+            if s.extra_data_string.get('carence_pe_slade', None):
+                carence_pe = s.extra_data_string.get('carence_pe_slade', '')
+            if s.extra_data_string.get('mode_de_versement', None):
+                    type_ipt = s.extra_data_string.get('mode_de_versement', '')
+            ?>
+            <FRANCHISE_ITT>${franchise_itt}</FRANCHISE_ITT>
+            <FRANCHISE_PE>${franchise_pe}</FRANCHISE_PE>
+            <CARENCE_PE>${carence_pe}</CARENCE_PE>
+            <TYPE_IPT>${type_ipt}</TYPE_IPT>
+        </GARANTIES_PHRASE>
+        <ORGANISME_BENEFICIAIRE py:if="to_generate">
+            <NOM_BENEFICIAIRE>${loan.lender.commercial_name if loan.lender else ''}</NOM_BENEFICIAIRE>
+            <ADRESSE_BENEFICIAIRE>${loan.lender_address.street if loan.lender_address else ''}</ADRESSE_BENEFICIAIRE>
+            <CODE_POSTAL_BENEFICIAIRE>${loan.lender_address.zip if loan.lender_address else ''}</CODE_POSTAL_BENEFICIAIRE>
+            <VILLE_BENEFICIAIRE>${loan.lender_address.city if loan.lender_address else ''}</VILLE_BENEFICIAIRE>
+            <PAYS_BENEFICIAIRE>${loan.lender_address.country.name if loan.lender_address and loan.lender_address.country else ''}</PAYS_BENEFICIAIRE>
+        </ORGANISME_BENEFICIAIRE>
+        <ECHEANCIERS_DES_COTISATIONS_PRET py:if="to_generate">
+            <?python
+            possible_frequencies = {'monthly': 'Mensuelle', 'quarterly': 'Trimestrielle', 'half_yearly': 'Semestrielle', 'yearly': 'Annuelle'}
             cur_start_date = contract.initial_start_date
             end_date = cur_start_date
             for option in contract.get_all_options():
@@ -285,7 +293,7 @@
                     cotisation_total_standard = Decimal(0)
                     cotisation_total_extra_premium = Decimal(0)
                     for period in periods:
-                        for detail in [p for p in period['details'] if (p.get('loan', '') == loan or (loan_index == 0 and not p.get('loan', None)))]:
+                        for detail in [p for p in period['details'] if (p.get('loan', '') == loan or (index_loan == 1 and not p.get('loan', None)))]:
                             premium = detail.get('premium', None)
                             is_extra_premium = True if premium and premium.extra_premium else False
                             if is_extra_premium:
@@ -311,18 +319,28 @@
                                 cotisation_total_extra_premium += detail['total_amount']
                             else:
                                 cotisation_total_standard += detail['total_amount']
-                    contract_years.append({
-                            'start_date': cur_start_date,
-                            'end_date': cur_end_date,
-                            'cotisation_dc_ptia_standard': cotisation_dc_ptia_standard,
-                            'cotisation_dc_ptia_extra_premium': cotisation_dc_ptia_extra_premium,
-                            'cotisation_itip_standard': cotisation_itip_standard,
-                            'cotisation_itip_extra_premium': cotisation_itip_extra_premium,
-                            'cotisation_option_standard': cotisation_option_standard,
-                            'cotisation_option_extra_premium': cotisation_option_extra_premium,
-                            'cotisation_total_standard': cotisation_total_standard,
-                            'cotisation_total_extra_premium': cotisation_total_extra_premium,
-                            })                    
+                    if cur_start_date == cur_end_date:
+                        contract_years[-1]['cotisation_dc_ptia_standard'] += cotisation_dc_ptia_standard
+                        contract_years[-1]['cotisation_dc_ptia_extra_premium'] += cotisation_dc_ptia_extra_premium
+                        contract_years[-1]['cotisation_itip_standard'] += cotisation_itip_standard
+                        contract_years[-1]['cotisation_itip_extra_premium'] += cotisation_itip_extra_premium
+                        contract_years[-1]['cotisation_option_standard'] += cotisation_option_standard
+                        contract_years[-1]['cotisation_option_extra_premium'] += cotisation_option_extra_premium
+                        contract_years[-1]['cotisation_total_standard'] += cotisation_total_standard
+                        contract_years[-1]['cotisation_total_extra_premium'] += cotisation_total_extra_premium
+                    else:
+                        contract_years.append({
+                                'start_date': cur_start_date,
+                                'end_date': cur_end_date,
+                                'cotisation_dc_ptia_standard': cotisation_dc_ptia_standard,
+                                'cotisation_dc_ptia_extra_premium': cotisation_dc_ptia_extra_premium,
+                                'cotisation_itip_standard': cotisation_itip_standard,
+                                'cotisation_itip_extra_premium': cotisation_itip_extra_premium,
+                                'cotisation_option_standard': cotisation_option_standard,
+                                'cotisation_option_extra_premium': cotisation_option_extra_premium,
+                                'cotisation_total_standard': cotisation_total_standard,
+                                'cotisation_total_extra_premium': cotisation_total_extra_premium,
+                                })                    
                     total_cotisation_dc_ptia_standard += cotisation_dc_ptia_standard
                     total_cotisation_dc_ptia_extra_premium += cotisation_dc_ptia_extra_premium
                     total_cotisation_itip_standard += cotisation_itip_standard
@@ -333,9 +351,8 @@
                     total_cotisation_total_extra_premium += cotisation_total_extra_premium
                     cur_start_date = next_date
             ?>
-            <ORDRE_DU_PRET>Prêt ${loan_index + 1}</ORDRE_DU_PRET>
-            <PERIODICITE_DES_COTISATIONS>${contract.billing_information.billing_mode.frequency_string if contract.billing_information and contract.billing_information.billing_mode else ''}</PERIODICITE_DES_COTISATIONS>
-            <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${contract.first_not_null_invoice.start.strftime('%d/%m/%Y') if contract.first_not_null_invoice else ''}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
+            <NUMERO_DU_PRET>${loan.number}</NUMERO_DU_PRET>
+            <PERIODICITE_DES_COTISATIONS>${possible_frequencies.get(contract.billing_information.billing_mode.frequency, '') if contract.billing_information and contract.billing_information.billing_mode else ''}</PERIODICITE_DES_COTISATIONS>
             <TOTAL_GENERAL_DC_PTIA_SD>${total_cotisation_dc_ptia_standard}</TOTAL_GENERAL_DC_PTIA_SD>
             <TOTAL_GENERAL_IPP_IPT_ITT_SD>${total_cotisation_itip_standard}</TOTAL_GENERAL_IPP_IPT_ITT_SD>
             <TOTAL_GENERAL_COTISATION_ANNUELLE_SD>${total_cotisation_total_standard}</TOTAL_GENERAL_COTISATION_ANNUELLE_SD>
@@ -344,8 +361,9 @@
             <TOTAL_GENERAL_IPP_IPT_ITT_S>${total_cotisation_itip_standard + total_cotisation_itip_extra_premium}</TOTAL_GENERAL_IPP_IPT_ITT_S>
             <TOTAL_GENERAL_COTISATION_ANNUELLE_S>${total_cotisation_total_standard + total_cotisation_total_extra_premium}</TOTAL_GENERAL_COTISATION_ANNUELLE_S>
             <TOTAL_GENERAL_DONT_OPTIONS_S>${total_cotisation_option_standard + total_cotisation_option_extra_premium}</TOTAL_GENERAL_DONT_OPTIONS_S>
-            <TAEA_SD>Action Cegema: valeur à determiner dans extra_data ou customer_data</TAEA_SD>
-            <TAEA_S>${round(loan.get_taea_for_contract(contract), 10)}</TAEA_S>
+            <TAUX_MOYEN_SD>Action Cegema: Comment alimenter ce champs?</TAUX_MOYEN_SD>
+            <TAUX_MOYEN_S>${round(loan.get_average_premium_rate([loan], ['average_premium_rate'], contract).get('average_premium_rate', {}).get(loan.id, 0), 2)}</TAUX_MOYEN_S>
+            <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${contract.first_not_null_invoice.start.strftime('%d/%m/%Y') if contract.first_not_null_invoice else ''}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
             <ECHEANCIERS_DES_COTISATIONS>
                 <ECHEANCIER_DES_COTISATIONS py:for="index_year, year in enumerate(contract_years)">
                     <ECHEANCE>Année ${index_year + 1}</ECHEANCE>
@@ -353,11 +371,9 @@
                     <COTISATION_ANNUELLE_DC_PTIA_SD>${year['cotisation_dc_ptia_standard'] if 'cotisation_dc_ptia_standard' in year else Decimal(0)}</COTISATION_ANNUELLE_DC_PTIA_SD>
                     <COTISATION_ANNUELLE_IPP_IPT_ITT_SD>${year['cotisation_itip_standard'] if 'cotisation_itip_standard' in year else Decimal(0)}</COTISATION_ANNUELLE_IPP_IPT_ITT_SD>
                     <TOTAL_COTISATION_ANNUELLE_SD>${year['cotisation_total_standard'] if 'cotisation_total_standard' in year else Decimal(0)}</TOTAL_COTISATION_ANNUELLE_SD>
-                    <DONT_OPTIONS_SD>${year['cotisation_option_standard'] if 'cotisation_option_standard' in year else Decimal(0)}</DONT_OPTIONS_SD>
                     <COTISATION_ANNUELLE_DC_PTIA_S>${year['cotisation_dc_ptia_standard'] + year['cotisation_dc_ptia_extra_premium'] if 'cotisation_dc_ptia_standard' in year and 'cotisation_dc_ptia_extra_premium' in year else Decimal(0)}</COTISATION_ANNUELLE_DC_PTIA_S>
                     <COTISATION_ANNUELLE_IPP_IPT_ITT_S>${year['cotisation_itip_standard'] + year['cotisation_itip_extra_premium'] if 'cotisation_itip_standard' in year and 'cotisation_itip_extra_premium' in year else Decimal(0)}</COTISATION_ANNUELLE_IPP_IPT_ITT_S>
                     <TOTAL_COTISATION_ANNUELLE_S>${year['cotisation_total_standard'] + year['cotisation_total_extra_premium'] if 'cotisation_total_standard' in year and 'cotisation_total_extra_premium' in year else Decimal(0)}</TOTAL_COTISATION_ANNUELLE_S>
-                    <DONT_OPTIONS_S>${year['cotisation_option_standard'] + year['cotisation_option_extra_premium'] if 'cotisation_option_standard' in year and 'cotisation_option_extra_premium' in year else Decimal(0)}</DONT_OPTIONS_S>
                 </ECHEANCIER_DES_COTISATIONS>
             </ECHEANCIERS_DES_COTISATIONS>
         </ECHEANCIERS_DES_COTISATIONS_PRET>
