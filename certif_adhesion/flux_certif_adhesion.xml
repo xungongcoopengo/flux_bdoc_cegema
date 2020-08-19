@@ -189,10 +189,7 @@
             <DATE_EFFET_GARANTIES>${contract.initial_start_date.strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
         </GENERAL>
         <COURTIER py:if="to_generate">
-            <NOM_COURTIER>${contract.broker.name if contract.broker else ''}</NOM_COURTIER>
-            <NUM_TELEPHONE>${contract.broker.phone if contract.broker and contract.broker.phone else ''}</NUM_TELEPHONE>
-            <EMAIL>${contract.broker.email if contract.broker and contract.broker.phone else ''}</EMAIL>
-            <CODE>${contract.broker.code if contract.broker else ''}</CODE>
+            <NOM_COURTIER>${contract.broker.code if contract.broker else ''}</NOM_COURTIER>
         </COURTIER>
         <EMPRUNTEUR_ASSURE py:if="to_generate">
             <CIVILITE>${covered_element_party.gender_string}</CIVILITE>
@@ -221,7 +218,7 @@
                 <COTISATION_ANNUELLE_IPP_IPT_ITT>${year['cotisation_itip'] or Decimal(0)}</COTISATION_ANNUELLE_IPP_IPT_ITT>
                 <TOTAL_COTISATION_ANNUELLE>${year['cotisation_total'] or Decimal(0)}</TOTAL_COTISATION_ANNUELLE>
                 <DONT_OPTIONS>${year['cotisation_option'] or Decimal(0)}</DONT_OPTIONS>
-                <COTISATION_MENSUELLE_MOYENNE>${year['cotisation_total'] or Decimal(0) / year['nb_months']}</COTISATION_MENSUELLE_MOYENNE>
+                <COTISATION_MENSUELLE_MOYENNE>${round((year['cotisation_total'] or Decimal(0)) / year['nb_months'], 2)}</COTISATION_MENSUELLE_MOYENNE>
             </ECHEANCIER_DES_COTISATIONS>
         </ECHEANCIERS_DES_COTISATIONS> 
         <ADHERENT py:if="to_generate">
@@ -279,6 +276,25 @@
             <QUOTITE_IPP>${int(loan_options_code.get('slade_ipp') * 100) if loan_options_code.get('slade_ipp', None) else None}</QUOTITE_IPP>
             <QUOTITE_IPT>${int(max(loan_options_code.get('slade_ipt', 0) * 100, loan_options_code.get('slade_ippro', 0) * 100)) if loan_options_code.get('slade_ipt', None) or loan_options_code.get('slade_ippro', None) else None}</QUOTITE_IPT>
             <QUOTITE_ITT>${int(loan_options_code.get('slade_itt') * 100) if loan_options_code.get('slade_itt', None) else None}</QUOTITE_ITT>
+            <?python
+            franchise_itt = ''
+            franchise_pe = ''
+            carence_pe = ''
+            type_ipt = ''
+            for s in [s for option in contract.get_all_options() for s in option.get_shares_at_date(contract.initial_start_date) if s.loan == loan and s.share]:
+                if s.extra_data_string.get('franchise_itt_slade', None):
+                    franchise_itt = s.extra_data_string.get('franchise_itt_slade', '')
+                if s.extra_data_string.get('franchise_pe_slade', None):
+                    franchise_pe = s.extra_data_string.get('franchise_pe_slade', '')
+            if s.extra_data_string.get('carence_pe_slade', None):
+                carence_pe = s.extra_data_string.get('carence_pe_slade', '')
+            if s.extra_data_string.get('mode_de_versement', None):
+                    type_ipt = s.extra_data_string.get('mode_de_versement', '')
+            ?>
+            <FRANCHISE_ITT>${franchise_itt}</FRANCHISE_ITT>
+            <FRANCHISE_PE>${franchise_pe}</FRANCHISE_PE>
+            <CARENCE_PE>${carence_pe}</CARENCE_PE>
+            <TYPE_IPT>${type_ipt}</TYPE_IPT>
         </TABLEAU_DES_GARANTIES>
         <DETAILS_DES_GARANTIES py:if="to_generate">
             <?python
@@ -292,12 +308,12 @@
         <INFORMATIONS_DU_PRET py:if="to_generate">
             <ORDRE_DU_PRET>${str(index_loan)}</ORDRE_DU_PRET>
             <MONTANT>${loan.amount}</MONTANT>
-            <TYPE_DE_PRET>${loan.extra_data_string.get('type_de_pret', '')}</TYPE_DE_PRET>
+            <TYPE_DE_PRET>${loan.kind_string}</TYPE_DE_PRET>
             <TAUX_HORS_ASSURANCE>${loan.rate*100}%</TAUX_HORS_ASSURANCE>
             <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
             <DUREE>${loan.duration}</DUREE>
             <DUREE_DIFFERE>${loan.deferral_duration if loan.deferral_duration else 0}</DUREE_DIFFERE>
-            <MONTANT_ECHEANCES>${loan.increments[0].payment_amount if loan.increments else 0}</MONTANT_ECHEANCES>
+            <MONTANT_ECHEANCES_LOYERS>${loan.increments[0].payment_amount if loan.increments else 0}</MONTANT_ECHEANCES_LOYERS>
         </INFORMATIONS_DU_PRET>
     </DOCUMENT>
 </ROOT> 

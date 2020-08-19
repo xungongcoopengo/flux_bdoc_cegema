@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?python
+    from datetime import datetime
+    from trytond.pool import Pool
+    from trytond.modules.coog_core import coog_date
+?>
+<ROOT xmlns:py="http://genshi.edgewall.org/">
+    <DOCUMENT py:for="contract in objects">
+        <?python
+            template = Pool().get('report.template')(id=doc_template[0])
+            covered_element = contract.covered_elements[0] if contract.covered_elements else None
+            covered_element_party = covered_element.party if covered_element else None
+            subscriber = contract.subscriber if contract else None
+            subscriber_address = subscriber.get_address() if subscriber else None
+            to_generate = template and contract and subscriber and covered_element and covered_element_party
+        ?>
+        <TECHDATA py:if="to_generate">
+            <MODELE>${template.code}</MODELE>
+            <STATUS_DOCUMENT></STATUS_DOCUMENT>
+            <LISTE_CONTRATS>
+                <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
+                <PERIMETRE>EMP</PERIMETRE>
+                <STATUT_CONTRAT></STATUT_CONTRAT>
+                <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
+            </LISTE_CONTRATS>
+            <LISTE_ADHERENT>
+                <NUM_ADHERENT>${subscriber.code}</NUM_ADHERENT>
+                <RAISON_SOCIALE_ADHERENT>${subscriber.name if not subscriber.is_person else ''}</RAISON_SOCIALE_ADHERENT>
+                <NOM_ADHERENT>${subscriber.name if subscriber.is_person else ''}</NOM_ADHERENT>
+                <PRENOM_ADHERENT>${subscriber.first_name if subscriber.is_person else ''}</PRENOM_ADHERENT>
+                <DATE_NAISSANCE_ADHERENT></DATE_NAISSANCE_ADHERENT>
+            </LISTE_ADHERENT>
+            <LISTE_ASSURES>
+                <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
+                <NOM_ASSURE>${covered_element_party.name}</NOM_ASSURE>
+                <PRENOM_ASSURE>${covered_element_party.first_name}</PRENOM_ASSURE>
+                <DATE_NAISSANCE_ASSURE>${covered_element_party.birth_date.strftime('%Y-%m-%d')}</DATE_NAISSANCE_ASSURE>
+            </LISTE_ASSURES>
+            <LISTE_APPORTEUR>
+                <NUM_APPORTEUR></NUM_APPORTEUR>
+                <RAISON_SOCIALE_APPORTEUR></RAISON_SOCIALE_APPORTEUR>
+                <NOM_CONTACT_APPORTEUR></NOM_CONTACT_APPORTEUR>
+                <PRENOM_CONTACT_APPORTEUR></PRENOM_CONTACT_APPORTEUR>
+            </LISTE_APPORTEUR>
+            <NUM_PLI></NUM_PLI>
+            <ORIGINE>BDOC</ORIGINE>
+            <GARANTIES></GARANTIES>
+            <NUM_ACTE_GESTION></NUM_ACTE_GESTION>
+            <DATE_NUMERISATION></DATE_NUMERISATION>
+            <DATE_ENVOI></DATE_ENVOI>
+            <OBJET_DISTRIBUTION></OBJET_DISTRIBUTION>
+            <NOM_EXPEDITEUR></NOM_EXPEDITEUR>
+            <PRENOM_EXPEDITEUR></PRENOM_EXPEDITEUR>
+            <EMAIL_EXPEDITEUR></EMAIL_EXPEDITEUR>
+            <NOM_DESTINATAIRE_PRINCIPAL></NOM_DESTINATAIRE_PRINCIPAL>
+            <PRENOM_DESTINATAIRE_PRINCIPAL></PRENOM_DESTINATAIRE_PRINCIPAL>
+            <EMAIL_DESTINATAIRE_PRINCIPAL></EMAIL_DESTINATAIRE_PRINCIPAL>
+            <LISTE_DESTINATAIRE_COPIE>
+                <NOM_DESTINATAIRE_COPIE></NOM_DESTINATAIRE_COPIE>
+                <PRENOM_DESTINATAIRE_COPIE></PRENOM_DESTINATAIRE_COPIE>
+                <EMAIL_DESTINATAIRE_COPIE></EMAIL_DESTINATAIRE_COPIE>
+            </LISTE_DESTINATAIRE_COPIE>
+            <PARTENAIRE_TPA></PARTENAIRE_TPA>
+            <NIVEAU_CONFIDENTIALITE>N/A</NIVEAU_CONFIDENTIALITE>
+            <TYPE_ACTE_GESTION_ASSOCIE></TYPE_ACTE_GESTION_ASSOCIE>
+            <LISTE_PRODUIT>
+                <NOM_PRODUIT></NOM_PRODUIT>
+            </LISTE_PRODUIT>
+            <MONTANTS_GARANTIES></MONTANTS_GARANTIES>
+            <DOCUMENT_ENTRANT_SORTANT>S</DOCUMENT_ENTRANT_SORTANT>
+            <RESEAU_DISTRIBUTION></RESEAU_DISTRIBUTION>
+            <PRIORITE></PRIORITE>
+            <DATE_RECEPTION>${datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</DATE_RECEPTION>
+            <COURRIER_AR></COURRIER_AR>
+            <VIP></VIP>
+            <ETAT_DOSSIER></ETAT_DOSSIER>
+            <MOTIF>Document sortant</MOTIF>
+            <SOUS_MOTIF>Archives</SOUS_MOTIF>
+            <ID_TYPE_DOC_COOG_ATTENDU></ID_TYPE_DOC_COOG_ATTENDU>
+            <TYPE_DOC_COOG_ATTENDU></TYPE_DOC_COOG_ATTENDU>
+            <STATUT_TYPE_DOC_COOG_ATTENDU></STATUT_TYPE_DOC_COOG_ATTENDU>
+            <DATERECEPTION_TYPE_DOC_COOG_ATTENDU></DATERECEPTION_TYPE_DOC_COOG_ATTENDU>
+            <TYPE_RENS_COMPLEMENTAIRE></TYPE_RENS_COMPLEMENTAIRE>
+            <AFFICHAGE_COURTIER></AFFICHAGE_COURTIER>
+            <AFFICHAGE_ASSURE></AFFICHAGE_ASSURE>
+            <AFFICHAGE_GESTION></AFFICHAGE_GESTION>
+            <TYPE_QUESTIONNAIRE></TYPE_QUESTIONNAIRE>
+            <SIGNE_ELECTRONIQUEMENT>O</SIGNE_ELECTRONIQUEMENT>
+            <ORIGINAL></ORIGINAL>
+            <STREAM></STREAM>
+            <RESEAU></RESEAU>
+            <MARQUE_CONTRAT></MARQUE_CONTRAT>
+            <TYPE_DOCUMENT>${template.name}</TYPE_DOCUMENT>
+            <ID_DEMANDE></ID_DEMANDE>
+            <AFFICHAGE_APPORTEUR></AFFICHAGE_APPORTEUR>
+            <MODE_DISTRIBUTION></MODE_DISTRIBUTION>
+            <DATELIMITE_TRAITEMENT></DATELIMITE_TRAITEMENT>
+            <ETAPE_CONTRAT></ETAPE_CONTRAT>
+            <GED>O</GED>
+            <GED_ONBASE>O</GED_ONBASE>
+            <GED_NOM_FICHIER>AJOURNEMENT_${datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}</GED_NOM_FICHIER>
+            <IDENTIFIANT_DOCUMENT_UNIQUE></IDENTIFIANT_DOCUMENT_UNIQUE>
+        </TECHDATA>
+        <QR_CODE py:if="to_generate">
+            <TYPE_DOCUMENT>${template.name}</TYPE_DOCUMENT>
+            <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
+        </QR_CODE>
+        <GENERAL py:if="to_generate">
+            <NOM_PRODUIT></NOM_PRODUIT>
+            <NUM_ADHESION>${contract.contract_number or contract.quote_number}</NUM_ADHESION>
+        </GENERAL>
+        <ADHERENT py:if="to_generate and subscriber.is_person">
+            <CIV_ADH>${subscriber.gender_string}</CIV_ADH>
+            <NOM_ADH>${subscriber.name}</NOM_ADH>
+            <PRENOM_ADH>${subscriber.first_name}</PRENOM_ADH>
+            <ADRESSE_ADH>${subscriber_address.street if subscriber_address else ''}</ADRESSE_ADH>
+            <CODE_POSTAL_ADH>${subscriber_address.zip if subscriber_address else ''}</CODE_POSTAL_ADH>
+            <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
+            <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
+            <IDENTIFIANT_ESPACE_ADHERENT></IDENTIFIANT_ESPACE_ADHERENT>
+        </ADHERENT>
+        <ADHERENT py:if="to_generate and not subscriber.is_person">
+            <RAISON_SOCIALE>${subscriber.name}</RAISON_SOCIALE>
+            <SIREN>${subscriber.siren}</SIREN>
+            <ADRESSE_SCI>${subscriber_address.street if subscriber_address else ''}</ADRESSE_SCI>
+            <CODE_POSTAL_ADH>${subscriber_address.zip if subscriber_address else ''}</CODE_POSTAL_ADH>
+            <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
+            <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
+        </ADHERENT>
+        <DECISION py:if="to_generate">
+            <?python
+                mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+                postponed_date = ''
+                additional_demands_list = []
+                additional_demands = ''
+                if contract.underwritings:
+                    underwritings = list(contract.underwritings)
+                    underwritings.sort(key=lambda x: x.decision_date)
+                    if underwritings[-1].postponed_date:
+                        month_name = mois[int(contract.underwritings[-1].postponed_date.strftime('%m')) - 1]
+                        postponed_date = month_name + ' ' + contract.underwritings[-1].postponed_date.strftime('%Y')
+                for doc in contract.document_request_lines:
+                    if doc.added_manually:
+                        additional_demands_list.append(doc.rec_name)
+                if additional_demands_list:
+                    if len(additional_demands_list) > 1:
+                        additional_demands = ", ".join(additional_demands_list)
+                    else:
+                        additional_demands = additional_demands_list[0]
+            ?>
+            <DATE_AJOURNEMENT>${postponed_date}</DATE_AJOURNEMENT>
+            <DEMANDE_COMPLEMENTAIRE>${additional_demands}</DEMANDE_COMPLEMENTAIRE>
+        </DECISION>
+    </DOCUMENT>
+</ROOT> 

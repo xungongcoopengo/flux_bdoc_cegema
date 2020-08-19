@@ -204,7 +204,7 @@
         </ORGANISME_PRETEURS>
         <INFORMATIONS_DU_PRET py:if="to_generate">
             <MONTANT>${loan.amount}</MONTANT>
-            <TYPE_DE_PRET>${loan.extra_data_string.get('type_de_pret', '')}</TYPE_DE_PRET>
+            <TYPE_DE_PRET>${loan.kind_string}</TYPE_DE_PRET>
             <TAUX_HORS_ASSURANCE>${loan.rate*100}%</TAUX_HORS_ASSURANCE>
             <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
             <DUREE>${loan.duration} ${loan.duration_unit_string}</DUREE>
@@ -215,18 +215,18 @@
         </INFORMATIONS_DU_PRET>    
         <DETAILS_DES_GARANTIES py:if="to_generate">
            <DETAIL_DE_GARANTIE py:for="garantie_code in codes_options.keys()">
-                <GARANTIE>${codes_options.get(garantie_code, '')}</GARANTIE>
-                <DECISION_ASSUREUR>${decision_subscriber}</DECISION_ASSUREUR>
-                <QUOTITE>${int(loan_options_code.get(garantie_code) * 100) if loan_options_code.get(garantie_code, None) else None}</QUOTITE>
-                <DECISION_ANALYSE_DE_RISQUE>${loan_options_decision.get(garantie_code, '')}</DECISION_ANALYSE_DE_RISQUE>
-                <SURPRIME>${'Oui' if options_extra_premiums.get(garantie_code, None) else 'Non'}</SURPRIME>
-                <MOTIF>${options_extra_premiums.get(garantie_code, '')}</MOTIF>
+                <GARANTIE py:if="loan_options_code.get(garantie_code, None)">${codes_options.get(garantie_code, '')}</GARANTIE>
+                <DECISION_ASSUREUR py:if="loan_options_code.get(garantie_code, None)">${decision_subscriber}</DECISION_ASSUREUR>
+                <QUOTITE py:if="loan_options_code.get(garantie_code, None)">${int(loan_options_code.get(garantie_code) * 100) if loan_options_code.get(garantie_code, None) else None}</QUOTITE>
+                <DECISION_ANALYSE_DE_RISQUE py:if="loan_options_code.get(garantie_code, None)">${loan_options_decision.get(garantie_code, '')}</DECISION_ANALYSE_DE_RISQUE>
+                <SURPRIME py:if="options_extra_premiums.get(garantie_code, None)">${'Oui' if options_extra_premiums.get(garantie_code, None) else 'Non'}</SURPRIME>
+                <MOTIF py:if="options_extra_premiums.get(garantie_code, None)">${options_extra_premiums.get(garantie_code, '')}</MOTIF>
             </DETAIL_DE_GARANTIE>
         </DETAILS_DES_GARANTIES>
         <OPTIONS py:if="to_generate">
             <OPTION py:for="option_code in loan_mno_sport_code.keys()">
-                <OPTION_SOUHAITEE>${loan_mno_sport_code.get(option_code, '')}</OPTION_SOUHAITEE>
-                <DECISION_OPTION>${loan_mno_sport_decision.get(option_code, '')}</DECISION_OPTION>
+                <OPTION_SOUHAITEE py:if="loan_mno_sport_code.get(option_code, None)">${loan_mno_sport_code.get(option_code, '')}</OPTION_SOUHAITEE>
+                <DECISION_OPTION py:if="loan_mno_sport_code.get(option_code, None)">${loan_mno_sport_decision.get(option_code, '')}</DECISION_OPTION>
             </OPTION>
         </OPTIONS>
         <GARANTIES_PHRASE py:if="to_generate">
