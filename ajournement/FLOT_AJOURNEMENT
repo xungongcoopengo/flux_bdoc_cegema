@@ -18,7 +18,7 @@
             <MODELE>${template.code}</MODELE>
             <STATUS_DOCUMENT></STATUS_DOCUMENT>
             <LISTE_CONTRATS>
-                <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
+                <NUM_CONTRAT>${contract.id}</NUM_CONTRAT>
                 <PERIMETRE>EMP</PERIMETRE>
                 <STATUT_CONTRAT></STATUT_CONTRAT>
                 <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
@@ -103,7 +103,7 @@
         </TECHDATA>
         <QR_CODE py:if="to_generate">
             <TYPE_DOCUMENT>${template.name}</TYPE_DOCUMENT>
-            <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
+            <NUM_CONTRAT>${contract.id}</NUM_CONTRAT>
         </QR_CODE>
         <GENERAL py:if="to_generate">
             <NOM_PRODUIT></NOM_PRODUIT>

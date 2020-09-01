@@ -87,7 +87,7 @@
             <MODELE>${template.code}</MODELE>
             <STATUS_DOCUMENT></STATUS_DOCUMENT>
             <LISTE_CONTRATS></LISTE_CONTRATS>
-            <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
+            <NUM_CONTRAT>${contract.id}</NUM_CONTRAT>
             <PERIMETRE>EMP</PERIMETRE>
             <STATUT_CONTRAT></STATUT_CONTRAT>
             <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
@@ -168,7 +168,7 @@
         </TECHDATA>
         <QR_CODE py:if="to_generate">
             <TYPE_DOCUMENT>${template.name}</TYPE_DOCUMENT>
-            <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
+            <NUM_CONTRAT>${contract.id}</NUM_CONTRAT>
             <NUM_FORMALITE></NUM_FORMALITE>
         </QR_CODE>
         <GENERAL py:if="to_generate">
@@ -279,7 +279,7 @@
         <INFORMATIONS_DU_PRET py:if="to_generate">
             <ORDRE_DU_PRET>${str(index_loan)}</ORDRE_DU_PRET>
             <MONTANT>${loan.amount}</MONTANT>
-            <TYPE_DE_PRET>${loan.kind_string}</TYPE_DE_PRET>
+            <TYPE_DE_PRET>${loan.extra_data_string.get('type_de_pret', '')}</TYPE_DE_PRET>
             <TAUX_HORS_ASSURANCE>${loan.rate*100}%</TAUX_HORS_ASSURANCE>
             <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
             <DUREE>${loan.duration}</DUREE>

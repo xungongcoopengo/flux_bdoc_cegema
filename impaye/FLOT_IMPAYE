@@ -63,7 +63,7 @@
             <NIVEAU_CONFIDENTIALITE>N/A</NIVEAU_CONFIDENTIALITE>
         </TECHDATA>
         <QR_CODE py:if="to_generate">
-            <NUM_CONTRAT>${contract.contract_number or contract.quote_number}</NUM_CONTRAT>
+            <NUM_CONTRAT>${contract.id}</NUM_CONTRAT>
         </QR_CODE>
         <HEADER py:if="to_generate">
             <CODE_REJET_PRELEVEMENT_ISO></CODE_REJET_PRELEVEMENT_ISO>
@@ -100,7 +100,7 @@
             <MONTANT_TOTAL_IMPAYE>${total_to_pay}</MONTANT_TOTAL_IMPAYE>
             <FRAIS_REJET>${reject_amount}</FRAIS_REJET>
             <TOTAL_A_REGLER>${reject_amount + total_to_pay}</TOTAL_A_REGLER>
-            <DATE_PRELEVEMENT>${coog_date.add_month(dunning.line.payment_date, 1).strftime('%d/%m/%Y')}</DATE_PRELEVEMENT>
+            <DATE_PRELEVEMENT>${coog_date.add_month(dunning.line.maturity_date, 1).strftime('%d/%m/%Y')}</DATE_PRELEVEMENT>
             <DATE_BUTOIR_REGLEMENT>${coog_date.add_day(dunning.line.maturity_date, 18).strftime('%d/%m/%Y')}</DATE_BUTOIR_REGLEMENT>
             <DATE_SUSPENSION_GARANTIE>${coog_date.add_day(dunning.line.maturity_date, 70).strftime('%d/%m/%Y')}</DATE_SUSPENSION_GARANTIE>
             <N_RUM></N_RUM>
