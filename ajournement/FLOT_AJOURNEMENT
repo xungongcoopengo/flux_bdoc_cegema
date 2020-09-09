@@ -133,12 +133,17 @@
                 postponed_date = ''
                 additional_demands_list = []
                 additional_demands = ''
-                if contract.underwritings:
-                    underwritings = list(contract.underwritings)
-                    underwritings.sort(key=lambda x: x.decision_date)
-                    if underwritings[-1].postponed_date:
-                        month_name = mois[int(contract.underwritings[-1].postponed_date.strftime('%m')) - 1]
-                        postponed_date = month_name + ' ' + contract.underwritings[-1].postponed_date.strftime('%Y')
+                refused_level_2 = False
+                refused_level_3 = False
+                is_aeras_eligible = False
+                is_refused_medical = False
+                for underwriting in contract.underwritings:
+                    if underwriting.postponed_date:
+                        month_name = mois[int(underwriting.postponed_date.strftime('%m')) - 1]
+                        postponed_date = month_name + ' ' + underwriting.postponed_date.strftime('%Y')
+                    refused_level_2 = (underwriting.decision and underwriting.decision.status == 'denied' and underwriting.level and underwriting.level.code == 'niveau_1_2') or refused_level_2
+                    refused_level_3 = (underwriting.decision and underwriting.decision.status == 'denied' and underwriting.level and underwriting.level.code == 'niveau_3') or refused_level_3
+                    is_refused_medical = (underwriting.decision and underwriting.decision.code == 'contrat_refuse_medical') or is_refused_medical
                 for doc in contract.document_request_lines:
                     if doc.added_manually:
                         additional_demands_list.append(doc.rec_name)
@@ -150,6 +155,10 @@
             ?>
             <DATE_AJOURNEMENT>${postponed_date}</DATE_AJOURNEMENT>
             <DEMANDE_COMPLEMENTAIRE>${additional_demands}</DEMANDE_COMPLEMENTAIRE>
+            <REFUS_NIVEAU_2>${'O' if refused_level_2 else 'N'}</REFUS_NIVEAU_2>
+            <REFUS_NIVEAU_3>${'O' if refused_level_3 else 'N'}</REFUS_NIVEAU_3>
+            <ELIGIBILITE_AERAS>${'O' if is_aeras_eligible else 'N'}</ELIGIBILITE_AERAS>
+            <MOTIF_MEDICAL>${'O' if is_refused_medical else 'N'}</MOTIF_MEDICAL>
         </DECISION>
     </DOCUMENT>
 </ROOT> 
