@@ -27,7 +27,7 @@
             to_generate = template and contract and loan and index_loan > 0 and subscriber and covered_element and covered_element_party and covered_element_version
 
             codes_options = {'slade_dc': "Décès (DC)", 'slade_ptia': "Perte Totale et Irréversible d'Automonie (PTIA)", 'slade_ipp': "Invalidité Permanente Partielle (IPP)",
-                                 'slade_ipt': "Invalidité Termanente et Totale (IPT)", 'slade_ippro': "Invalidité Termanente et Totale (IPT)", 'slade_itt': "Incapacité Totale de Travail (ITT)"}
+                                 'slade_ipt': "Invalidité Permanente et Totale (IPT)", 'slade_ippro': "Invalidité Permanente et Totale (IPT)", 'slade_itt': "Incapacité Temporaire et Totale de Travail (ITT)"}
             codes_mno_sports = {'slade_mno': "Sérénité ou Sérénité +", 'slade_sport': "Sport +"}
             loan_options_code = {}
             loan_options_decision = {}
@@ -205,16 +205,16 @@
         <INFORMATIONS_DU_PRET py:if="to_generate">
             <MONTANT>${loan.amount}</MONTANT>
             <TYPE_DE_PRET>${loan.kind_string}</TYPE_DE_PRET>
-            <TAUX_HORS_ASSURANCE>${loan.rate*100}%</TAUX_HORS_ASSURANCE>
+            <TAUX_HORS_ASSURANCE>${loan.rate*100}</TAUX_HORS_ASSURANCE>
             <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
             <DUREE>${loan.duration} ${loan.duration_unit_string}</DUREE>
             <DUREE_DIFFERE>${loan.deferral_duration if loan.deferral_duration else '0'} ${loan.duration_unit_string}</DUREE_DIFFERE>
             <MONTANT_ECHEANCES_LOYER>${loan.increments[0].payment_amount if loan.increments else 0}</MONTANT_ECHEANCES_LOYER>
             <MONTANT_ECRETEMENT></MONTANT_ECRETEMENT>
-            <DATE_EFFET_PRET>${loan.funds_release_date.strftime('%Y-%m-%d')}</DATE_EFFET_PRET>
+            <DATE_EFFET_PRET>${loan.funds_release_date.strftime('%d/%m/%Y')}</DATE_EFFET_PRET>
         </INFORMATIONS_DU_PRET>    
         <DETAILS_DES_GARANTIES py:if="to_generate">
-           <DETAIL_DE_GARANTIE py:for="garantie_code in codes_options.keys()">
+           <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code.keys()">
                 <GARANTIE py:if="loan_options_code.get(garantie_code, None)">${codes_options.get(garantie_code, '')}</GARANTIE>
                 <DECISION_ASSUREUR py:if="loan_options_code.get(garantie_code, None)">${decision_subscriber}</DECISION_ASSUREUR>
                 <QUOTITE py:if="loan_options_code.get(garantie_code, None)">${int(loan_options_code.get(garantie_code) * 100) if loan_options_code.get(garantie_code, None) else None}</QUOTITE>
@@ -230,28 +230,35 @@
             </OPTION>
         </OPTIONS>
         <GARANTIES_PHRASE py:if="to_generate">
-            <ITT>${'1' if loan_options_code.get('slade_itt', None) else '0'}</ITT>
-            <IPT>${'1' if loan_options_code.get('slade_ipt', None) or loan_options_code.get('slade_ippro', None) else '0'}</IPT>
-            <IPP>${'1' if loan_options_code.get('slade_ipp', None) else '0'}</IPP>
+            <ITT>${'Incapacité Temporaire Totale de Travail (ITT)' if loan_options_code.get('slade_itt', None) else ''}</ITT>
+            <IPT>${'Invalidité Permanente et Totale (IPT)' if loan_options_code.get('slade_ipt', None) else ''}</IPT>
+            <IPP>${'Invalidité Permanente Partielle (IPP)' if loan_options_code.get('slade_ipp', None) else ''}</IPP>
+            <IPPRO>${'Invalidité Profesionnelle (IPPro)' if loan_options_code.get('slade_ippro', None) else ''}</IPPRO>
+            <PE>${"Perte d'Emploi (PE)" if loan_options_code.get('slade_pe', None) else ''}</PE>
             <?python
             franchise_itt = ''
             franchise_pe = ''
             carence_pe = ''
             type_ipt = ''
+            type_ippro = ''
             for s in [s for option in contract.get_all_options() for s in option.get_shares_at_date(contract.initial_start_date) if s.loan == loan and s.share]:
                 if s.extra_data_string.get('franchise_itt_slade', None):
                     franchise_itt = s.extra_data_string.get('franchise_itt_slade', '')
                 if s.extra_data_string.get('franchise_pe_slade', None):
                     franchise_pe = s.extra_data_string.get('franchise_pe_slade', '')
-            if s.extra_data_string.get('carence_pe_slade', None):
-                carence_pe = s.extra_data_string.get('carence_pe_slade', '')
-            if s.extra_data_string.get('mode_de_versement', None):
-                    type_ipt = s.extra_data_string.get('mode_de_versement', '')
+                if s.extra_data_string.get('carence_pe_slade', None):
+                    carence_pe = s.extra_data_string.get('carence_pe_slade', '')
+                if s.extra_data_string.get('mode_de_versement', None):
+                    if s.option.coverage.code == 'slade_ipt':
+                        type_ipt = s.extra_data_string.get('mode_de_versement', '')
+                    elif s.option.coverage.code == 'slade_ippro':
+                        type_ippro = s.extra_data_string.get('mode_de_versement', '')
             ?>
             <FRANCHISE_ITT>${franchise_itt}</FRANCHISE_ITT>
             <FRANCHISE_PE>${franchise_pe}</FRANCHISE_PE>
             <CARENCE_PE>${carence_pe}</CARENCE_PE>
             <TYPE_IPT>${type_ipt}</TYPE_IPT>
+            <TYPE_IPPRO>${type_ippro}</TYPE_IPPRO>
         </GARANTIES_PHRASE>
         <ORGANISME_BENEFICIAIRE py:if="to_generate">
             <NOM_BENEFICIAIRE>${loan.lender.commercial_name if loan.lender else ''}</NOM_BENEFICIAIRE>
@@ -262,7 +269,7 @@
         </ORGANISME_BENEFICIAIRE>
         <ECHEANCIERS_DES_COTISATIONS_PRET py:if="to_generate">
             <?python
-            possible_frequencies = {'monthly': 'Mensuelle', 'quarterly': 'Trimestrielle', 'half_yearly': 'Semestrielle', 'yearly': 'Annuelle'}
+            possible_frequencies = {'month': 'Mensuelle', 'quarter': 'Trimestrielle', 'half_year': 'Semestrielle', 'year': 'Annuelle'}
             cur_start_date = contract.initial_start_date
             end_date = cur_start_date
             for option in contract.get_all_options():
@@ -352,7 +359,7 @@
                     cur_start_date = next_date
             ?>
             <NUMERO_DU_PRET>${loan.number}</NUMERO_DU_PRET>
-            <PERIODICITE_DES_COTISATIONS>${possible_frequencies.get(contract.billing_information.billing_mode.frequency, '') if contract.billing_information and contract.billing_information.billing_mode else ''}</PERIODICITE_DES_COTISATIONS>
+            <PERIODICITE_DES_COTISATIONS>${possible_frequencies.get(loan.payment_frequency, '') if loan.payment_frequency else ''}</PERIODICITE_DES_COTISATIONS>
             <TOTAL_GENERAL_DC_PTIA_SD>${total_cotisation_dc_ptia_standard}</TOTAL_GENERAL_DC_PTIA_SD>
             <TOTAL_GENERAL_IPP_IPT_ITT_SD>${total_cotisation_itip_standard}</TOTAL_GENERAL_IPP_IPT_ITT_SD>
             <TOTAL_GENERAL_COTISATION_ANNUELLE_SD>${total_cotisation_total_standard}</TOTAL_GENERAL_COTISATION_ANNUELLE_SD>
@@ -363,6 +370,7 @@
             <TOTAL_GENERAL_DONT_OPTIONS_S>${total_cotisation_option_standard + total_cotisation_option_extra_premium}</TOTAL_GENERAL_DONT_OPTIONS_S>
             <TAUX_MOYEN_SD>Action Cegema: Comment alimenter ce champs?</TAUX_MOYEN_SD>
             <TAUX_MOYEN_S>${round(loan.get_average_premium_rate([loan], ['average_premium_rate'], contract).get('average_premium_rate', {}).get(loan.id, 0), 2)}</TAUX_MOYEN_S>
+            <TYPE_DE_REGLEMENT>${'CRD' if contract.extra_datas and contract.extra_datas[-1].extra_data_values.get('tarif_sur_capital', None) == 'crd' else 'CI'}</TYPE_DE_REGLEMENT>
             <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${contract.first_not_null_invoice.start.strftime('%d/%m/%Y') if contract.first_not_null_invoice else ''}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
             <ECHEANCIERS_DES_COTISATIONS>
                 <ECHEANCIER_DES_COTISATIONS py:for="index_year, year in enumerate(contract_years)">
