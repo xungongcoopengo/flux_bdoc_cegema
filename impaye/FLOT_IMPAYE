@@ -18,12 +18,12 @@
             french_months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
             to_generate = template and contract and loan and subscriber and covered_element and covered_element_party
 
-            next_periods = contract.get_future_invoices(contract, from_date=date.today())
-            next_period = next_periods[0] if next_periods else None
-            next_pay_day = french_months[int(dunning.line.maturity_date.strftime('%m')) - 1] + ' ' + dunning.line.maturity_date.strftime('%Y')
+            next_periods = contract.get_future_invoices(contract, from_date=dunning.line.maturity_date or date.today())
+            next_period = next_periods[1] if next_periods and len(next_periods) > 1 else None
+            next_pay_day = french_months[int(next_period['start'].strftime('%m')) - 1] + ' ' + next_period['start'].strftime('%Y') if next_period and next_period.get('start', None) else None
             reject_amount = Decimal(0)
-            total_to_pay = next_period.get('amount', Decimal(0))
-            all_unpaid = {}
+            total_to_pay = next_period.get('total_amount', Decimal(0)) if next_period else Decimal(0)
+            all_unpaid = {next_pay_day: total_to_pay} if next_pay_day else {}
             for contract_invoice in contract.due_invoices:
                 account_invoice = contract_invoice.invoice
                 if account_invoice and account_invoice.lines_to_pay:
@@ -103,20 +103,14 @@
             <DATE_PRELEVEMENT>${coog_date.add_month(dunning.line.maturity_date, 1).strftime('%d/%m/%Y')}</DATE_PRELEVEMENT>
             <DATE_BUTOIR_REGLEMENT>${coog_date.add_day(dunning.line.maturity_date, 18).strftime('%d/%m/%Y')}</DATE_BUTOIR_REGLEMENT>
             <DATE_SUSPENSION_GARANTIE>${coog_date.add_day(dunning.line.maturity_date, 70).strftime('%d/%m/%Y')}</DATE_SUSPENSION_GARANTIE>
-            <N_RUM></N_RUM>
+            <N_RUM>${dunning.line.sepa_mandate.identification if dunning.line.sepa_mandate else ''}</N_RUM>
             <N_ICS>FR30ZZZ390186</N_ICS>
             <PROCHAINE_ECHEANCE>${next_pay_day}</PROCHAINE_ECHEANCE>
         </BODY>
         <ECHEANCES_DES_IMPAYES py:if="to_generate">
-            <py:for each="key, value in all_unpaid.items()">
-                <ECHEANCE_IMPAYE_IT>
-                    <ECHEANCE_IMPAYE>${key}</ECHEANCE_IMPAYE>
-                    <MONTANT_ECHEANCE_IMPAYE>${value}</MONTANT_ECHEANCE_IMPAYE>
-                </ECHEANCE_IMPAYE_IT>
-            </py:for> 
-            <ECHEANCE_IMPAYE_IT>
-                <ECHEANCE_IMPAYE>${next_pay_day}</ECHEANCE_IMPAYE>
-                <MONTANT_ECHEANCE_IMPAYE>${next_period.get('amount', Decimal(0))}</MONTANT_ECHEANCE_IMPAYE>
+            <ECHEANCE_IMPAYE_IT py:for="key, value in all_unpaid.items()">
+                <ECHEANCE_IMPAYE>${key}</ECHEANCE_IMPAYE>
+                <MONTANT_ECHEANCE_IMPAYE>${value}</MONTANT_ECHEANCE_IMPAYE>
             </ECHEANCE_IMPAYE_IT>
         </ECHEANCES_DES_IMPAYES>
     </DOCUMENT>

@@ -10,6 +10,7 @@
             template = Pool().get('report.template')(id=doc_template[0])
             contract = contract_loan.contract
             loan = contract_loan.loan
+            underwriting = contract.underwritings[-1] if contract.underwritings else None
             index_loan = 0
             for index, current_loan in enumerate(contract.used_loans):
                 if current_loan.id == loan.id:
@@ -271,7 +272,6 @@
         <ECHEANCIERS_DES_COTISATIONS_PRET py:if="to_generate">
             <?python
             possible_frequencies = {'month': 'Mensuelle', 'quarter': 'Trimestrielle', 'half_year': 'Semestrielle', 'year': 'Annuelle'}
-            contract.force_calculate_prices([contract])
             cur_start_date = contract.initial_start_date
             end_date = cur_start_date
             for option in contract.get_all_options():
@@ -288,11 +288,36 @@
             total_cotisation_total_standard = Decimal(0)
             total_cotisation_total_extra_premium = Decimal(0)
             contract_years = []
+            def extract_invoice(invoice):
+                res = {
+                    'details': []
+                    }
+                for detail in invoice['details']:
+                    cur_premium = detail.get('premium', None)
+                    cur_is_extra_premium = True if cur_premium and cur_premium.extra_premium else False
+                    cur_coverage_code = ''
+                    if cur_is_extra_premium:
+                        cur_coverage_code = cur_premium.extra_premium.option.coverage.code if cur_premium.extra_premium.option and cur_premium.extra_premium.option.coverage else ''
+                    else:
+                        cur_coverage_code = cur_premium.option.coverage.code if cur_premium and cur_premium.option and cur_premium.option.coverage else ''
+                    cur_detail = {
+                        'total_amount': detail['total_amount'],
+                        'premium': {
+                            'is_extra_premium': cur_is_extra_premium,
+                            'coverage_code': cur_coverage_code,
+                            'loan': detail.get('loan', None),
+                            'start': detail['start'],
+                            'end': detail['end']
+                            }
+                        }
+                    res['details'].append(cur_detail)
+                return res
+
+            periods = underwriting.get_future_invoices(underwriting.id, cur_start_date, end_date, extract_invoice) 
             if cur_start_date and end_date:
                 while cur_start_date <= end_date:
                     next_date = coog_date.add_year(cur_start_date, 1, True)
                     cur_end_date = min(end_date, coog_date.add_day(next_date, -1))
-                    periods = contract.get_future_invoices(contract, cur_start_date, cur_end_date) 
                     cotisation_dc_ptia_standard = Decimal(0)
                     cotisation_dc_ptia_extra_premium = Decimal(0)
                     cotisation_itip_standard = Decimal(0)
@@ -302,13 +327,10 @@
                     cotisation_total_standard = Decimal(0)
                     cotisation_total_extra_premium = Decimal(0)
                     for period in periods:
-                        for detail in [p for p in period['details'] if (p.get('loan', '') == loan or (index_loan == 1 and not p.get('loan', None)))]:
+                        for detail in [d for d in period['details'] if ((d['premium'].get('loan', '') == loan or (index_loan == 1 and not d['premium'].get('loan', None))) and cur_start_date <= d['premium']['start'] <= cur_end_date)]:
                             premium = detail.get('premium', None)
-                            is_extra_premium = True if premium and premium.extra_premium else False
-                            if is_extra_premium:
-                                coverage_code = premium.extra_premium.option.coverage.code if premium.extra_premium.option and premium.extra_premium.option.coverage else ''
-                            else:
-                                coverage_code = premium.option.coverage.code if premium and premium.option and premium.option.coverage else ''
+                            is_extra_premium = premium['is_extra_premium']
+                            coverage_code = premium['coverage_code']
                             if coverage_code in ['slade_dc', 'slade_ptia']:
                                 if is_extra_premium:
                                     cotisation_dc_ptia_extra_premium += detail['total_amount']
