@@ -44,6 +44,7 @@
             total_cotisation_dc_ptia = Decimal(0)
             total_cotisation_itip = Decimal(0)
             total_cotisation_option = Decimal(0)
+            total_cotisation_fee = Decimal(0)
             total_cotisation_total = Decimal(0)
             contract_years = []
             if cur_start_date and end_date:
@@ -55,18 +56,20 @@
                     cotisation_dc_ptia = Decimal(0)
                     cotisation_itip = Decimal(0)
                     cotisation_option = Decimal(0)
+                    cotisation_fee = Decimal(0)
                     cotisation_total = Decimal(0)
                     for period in periods:
                         for detail in [p for p in period['details'] if (p.get('loan', '') == loan or (index_loan == 1 and not p.get('loan', None)))]:
                             premium = detail.get('premium', None)
                             coverage_code = premium.option.coverage.code if premium and premium.option and premium.option.coverage else 'empty_code'
                             if coverage_code in ['slade_dc', 'slade_ptia']:
-                                cotisation_dc_ptia += detail['total_amount']
+                                cotisation_dc_ptia += detail['total_amount'] - detail['fee']
                             if coverage_code in ['slade_itt', 'slade_ipt', 'slade_ipp', 'slade_ippro']:
-                                cotisation_itip += detail['total_amount']
+                                cotisation_itip += detail['total_amount'] - detail['fee']
                             if coverage_code in ['slade_pe', 'slade_mno', 'slade_sport']:
-                                cotisation_option += detail['total_amount']
-                            cotisation_total += detail['total_amount']
+                                cotisation_option += detail['total_amount'] - detail['fee']
+                            cotisation_total += detail['total_amount'] - detail['fee']
+                            cotisation_fee += detail['fee']
                     if cur_start_date == cur_end_date:
                         contract_years[-1]['cotisation_dc_ptia'] += cotisation_dc_ptia
                         contract_years[-1]['cotisation_itip'] += cotisation_itip
@@ -85,6 +88,7 @@
                     total_cotisation_dc_ptia += cotisation_dc_ptia
                     total_cotisation_itip += cotisation_itip
                     total_cotisation_option += cotisation_option
+                    total_cotisation_fee += cotisation_fee
                     total_cotisation_total += cotisation_total
                     cur_start_date = next_date
         ?>
@@ -280,11 +284,11 @@
             <TOTAL_DES_COTISATIONS_IPP_IPT_ITT>${total_cotisation_itip}</TOTAL_DES_COTISATIONS_IPP_IPT_ITT>
             <TOTAL_DES_COTISATIONS_ANNUELLE>${total_cotisation_dc_ptia + total_cotisation_itip + total_cotisation_option}</TOTAL_DES_COTISATIONS_ANNUELLE>
             <TOTAL_DES_COTISATIONS_DONT_OPTIONS>${total_cotisation_option}</TOTAL_DES_COTISATIONS_DONT_OPTIONS>
-            <FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>${total_cotisation_total - total_cotisation_dc_ptia - total_cotisation_itip - total_cotisation_option}</FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>
-            <TOTAL_GENERAL>${total_cotisation_total}</TOTAL_GENERAL>
+            <FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>${total_cotisation_fee}</FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>
+            <TOTAL_GENERAL>${total_cotisation_total + total_cotisation_fee}</TOTAL_GENERAL>
             <TAUX_MOYEN_ANNUEL>${round(loan.get_average_premium_rate([loan], ['average_premium_rate'], contract).get('average_premium_rate', {}).get(loan.id, 0), 2)}</TAUX_MOYEN_ANNUEL>
             <TAEA>${round(loan.get_taea_for_contract(contract), 10)}</TAEA>
-            <COTISATION_MENSUELLE>${round(total_cotisation_total / total_nb_months, 10)}</COTISATION_MENSUELLE>
+            <COTISATION_MENSUELLE>${round((total_cotisation_total + total_cotisation_fee) / total_nb_months, 10)}</COTISATION_MENSUELLE>
         </ECHEANCIER_DE_COTISATION_UNIQUE>
         <TABLEAU_DES_GARANTIES py:if="to_generate">
             <DC>${'Décès (DC)' if loan_options_code.get('slade_dc', None) else ''}</DC>
