@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?python
     from datetime import datetime
+    from dateutil import relativedelta
     from trytond.pool import Pool
     from trytond.modules.coog_core import coog_date
 ?>
@@ -189,7 +190,10 @@
             <DATE_EFFET_GARANTIES>${contract.initial_start_date.strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
         </GENERAL>
         <COURTIER py:if="to_generate">
-            <NOM_COURTIER>${contract.broker.code if contract.broker else ''}</NOM_COURTIER>
+            <NOM_COURTIER>${contract.broker.name if contract.broker else ''}</NOM_COURTIER>
+            <NUM_TELEPHONE>${contract.broker.phone or contract.broker.mobile if contract.broker else ''}</NUM_TELEPHONE>
+            <EMAIL>${contract.broker.email if contract.broker else ''}</EMAIL>
+            <CODE_COURTIER>${contract.broker.code if contract.broker else ''}</CODE_COURTIER>
         </COURTIER>
         <EMPRUNTEUR_ASSURE py:if="to_generate">
             <CIVILITE>${covered_element_party.gender_string}</CIVILITE>
@@ -265,7 +269,13 @@
             <DETAIL_DES_CONDITIONS>${'1' if any([o.exclusions or o.extra_premiums for o in loan_options]) else '0'}</DETAIL_DES_CONDITIONS>
         </GARANTIES>
         <ECHEANCIER_DE_COTISATION_UNIQUE py:if="to_generate">
-            <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${contract.first_not_null_invoice.start.strftime('%d/%m/%Y') if contract.first_not_null_invoice else ''}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
+            <?python
+                first_not_null_invoice_date = None
+                if contract.first_not_null_invoice:
+                    next_date = contract.first_not_null_invoice.start + relativedelta.relativedelta(months=1)
+                    first_not_null_invoice_date = datetime(day=5, month=next_date.month, year=next_date.year)
+            ?>
+            <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${first_not_null_invoice_date.strftime('%d/%m/%Y') if first_not_null_invoice_date else ''}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
             <TOTAL_DES_COTISATIONS_DC_PTIA>${total_cotisation_dc_ptia}</TOTAL_DES_COTISATIONS_DC_PTIA>
             <TOTAL_DES_COTISATIONS_IPP_IPT_ITT>${total_cotisation_itip}</TOTAL_DES_COTISATIONS_IPP_IPT_ITT>
             <TOTAL_DES_COTISATIONS_ANNUELLE>${total_cotisation_dc_ptia + total_cotisation_itip + total_cotisation_option}</TOTAL_DES_COTISATIONS_ANNUELLE>
@@ -335,6 +345,14 @@
             </DETAIL_DE_GARANTIE>
         </DETAILS_DES_GARANTIES>
         <INFORMATIONS_DU_PRET py:if="to_generate">
+            <?python
+                type_differe_string = {'': 'Pas de différé', 'partially': 'Différé Partiel', 'fully': 'Différé Total'}
+                type_differe = None
+                if loan.kind in ('intermediate', 'balloon'):
+                    type_differe = type_differe_string.get(loan.deferral_balloon_intermediate, 'Type différé non valid')
+                else:
+                    type_differe = type_differe_string.get(loan.deferral, 'Type différé non valid')
+            ?>
             <ORDRE_DU_PRET>${str(index_loan)}</ORDRE_DU_PRET>
             <MONTANT>${loan.amount}</MONTANT>
             <TYPE_DE_PRET>${loan.kind_string}</TYPE_DE_PRET>
@@ -342,7 +360,8 @@
             <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
             <DUREE>${loan.duration}</DUREE>
             <DUREE_DIFFERE>${loan.deferral_duration if loan.deferral_duration else 0}</DUREE_DIFFERE>
-            <MONTANT_ECHEANCES_LOYERS>${loan.increments[0].payment_amount if loan.increments else 0}</MONTANT_ECHEANCES_LOYERS>
+            <TYPE_DE_DIFFERE>${type_differe}</TYPE_DE_DIFFERE>
+            <MONTANT_ECHEANCES_LOYERS>${max([increment.payment_amount for increment in loan.increments]) if loan.increments else 0}</MONTANT_ECHEANCES_LOYERS>
         </INFORMATIONS_DU_PRET>
     </DOCUMENT>
 </ROOT> 

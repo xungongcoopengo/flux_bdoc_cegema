@@ -10,7 +10,10 @@
             template = Pool().get('report.template')(id=doc_template[0])
             contract = contract_loan.contract
             loan = contract_loan.loan
-            underwriting = contract.underwritings[-1] if contract.underwritings else None
+            underwriting = None
+            for cu in contract.underwritings:
+                if cu.decision and cu.decision.status == 'accepted_with_conditions':
+                    underwriting = cu
             index_loan = 0
             for index, current_loan in enumerate(contract.used_loans):
                 if current_loan.id == loan.id:
@@ -56,17 +59,16 @@
                         elif option.coverage.code == 'slade_sport':
                                 loan_mno_sport_code[option.coverage.code] = 'Sport +'
                         loan_mno_sport_decision[option.coverage.code] = None
-                    if contract.underwritings:
-                        for cu in contract.underwritings:
-                            decision_assurer = cu.decision.name if cu.decision else ''
-                            if cu.underwriting_options:
-                                for cuo in cu.underwriting_options:
-                                    if cuo.option.id == option.id:
-                                        if option.coverage.code in codes_options.keys():
-                                            loan_options_decision[option.coverage.code] = cuo.decision.name if cuo.decision else ''
-                                        if option.coverage.code in codes_mno_sports.keys():
-                                            loan_mno_sport_decision[option.coverage.code] = cuo.decision.name if cuo.decision else ''
-        ?>
+                    if underwriting:
+                        decision_assurer = underwriting.decision.name if underwriting.decision else ''
+                        if underwriting.underwriting_options:
+                            for cuo in underwriting.underwriting_options:
+                                if cuo.option.id == option.id:
+                                    if option.coverage.code in codes_options.keys():
+                                        loan_options_decision[option.coverage.code] = cuo.decision.name if cuo.decision else ''
+                                    if option.coverage.code in codes_mno_sports.keys():
+                                        loan_mno_sport_decision[option.coverage.code] = cuo.decision.name if cuo.decision else ''
+         ?>
         <TECHDATA py:if="to_generate">
             <MODELE>${template.code}</MODELE>
             <STATUS_DOCUMENT></STATUS_DOCUMENT>
@@ -304,11 +306,11 @@
                         'total_amount': detail['total_amount'],
                         'premium': {
                             'is_extra_premium': cur_is_extra_premium,
-                            'coverage_code': cur_coverage_code,
-                            'loan': detail.get('loan', None),
-                            'start': detail['start'],
-                            'end': detail['end']
-                            }
+                            'coverage_code': cur_coverage_code
+                            },
+                        'loan': detail.get('loan', None),
+                        'start': detail['start'],
+                        'end': detail['end']
                         }
                     res['details'].append(cur_detail)
                 return res
@@ -327,10 +329,10 @@
                     cotisation_total_standard = Decimal(0)
                     cotisation_total_extra_premium = Decimal(0)
                     for period in periods:
-                        for detail in [d for d in period['details'] if ((d['premium'].get('loan', '') == loan or (index_loan == 1 and not d['premium'].get('loan', None))) and cur_start_date <= d['premium']['start'] <= cur_end_date)]:
+                        for detail in [d for d in period['details'] if ((d.get('loan', '') == loan or (index_loan == 1 and not d.get('loan', None))) and cur_start_date <= d['start'] <= cur_end_date)]:
                             premium = detail.get('premium', None)
-                            is_extra_premium = premium['is_extra_premium']
-                            coverage_code = premium['coverage_code']
+                            is_extra_premium = detail['premium']['is_extra_premium']
+                            coverage_code = detail['premium']['coverage_code']
                             if coverage_code in ['slade_dc', 'slade_ptia']:
                                 if is_extra_premium:
                                     cotisation_dc_ptia_extra_premium += detail['total_amount']
