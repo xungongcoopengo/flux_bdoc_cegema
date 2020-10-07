@@ -64,9 +64,9 @@
                             coverage_code = premium.option.coverage.code if premium and premium.option and premium.option.coverage else 'empty_code'
                             if coverage_code in ['slade_dc', 'slade_ptia']:
                                 cotisation_dc_ptia += detail['total_amount'] - detail['fee']
-                            if coverage_code in ['slade_itt', 'slade_ipt', 'slade_ipp', 'slade_ippro']:
+                            if coverage_code in ['slade_itt', 'slade_ipt', 'slade_ipp', 'slade_ippro', 'slade_pe']:
                                 cotisation_itip += detail['total_amount'] - detail['fee']
-                            if coverage_code in ['slade_pe', 'slade_mno', 'slade_sport']:
+                            if coverage_code in ['slade_mno', 'slade_sport']:
                                 cotisation_option += detail['total_amount'] - detail['fee']
                             cotisation_total += detail['total_amount'] - detail['fee']
                             cotisation_fee += detail['fee']
@@ -188,6 +188,7 @@
             <NUM_FORMALITE></NUM_FORMALITE>
         </QR_CODE>
         <GENERAL py:if="to_generate">
+            <IDENTIFIANT_ASSURE></IDENTIFIANT_ASSURE>
             <NUM_ADHESION>${contract.contract_number or contract.quote_number}</NUM_ADHESION>
             <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
@@ -227,6 +228,8 @@
                 <TOTAL_COTISATION_ANNUELLE>${year['cotisation_total'] or Decimal(0)}</TOTAL_COTISATION_ANNUELLE>
                 <DONT_OPTIONS>${year['cotisation_option'] or Decimal(0)}</DONT_OPTIONS>
                 <COTISATION_MENSUELLE_MOYENNE>${round((year['cotisation_total'] or Decimal(0)) / year['nb_months'], 2)}</COTISATION_MENSUELLE_MOYENNE>
+                <COTISATION_TRIMESTRIELLE_MOYENNE>${round((year['cotisation_total'] * 3 or Decimal(0)) / year['nb_months'], 2)}</COTISATION_TRIMESTRIELLE_MOYENNE>
+                <COTISATION_SEMESTRIELLE_MOYENNE>${round((year['cotisation_total'] * 6 or Decimal(0)) / year['nb_months'], 2)}</COTISATION_SEMESTRIELLE_MOYENNE>
             </ECHEANCIER_DES_COTISATIONS>
         </ECHEANCIERS_DES_COTISATIONS> 
         <ADHERENT py:if="to_generate">
@@ -286,7 +289,7 @@
             <TOTAL_DES_COTISATIONS_DONT_OPTIONS>${total_cotisation_option}</TOTAL_DES_COTISATIONS_DONT_OPTIONS>
             <FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>${total_cotisation_fee}</FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>
             <TOTAL_GENERAL>${total_cotisation_total + total_cotisation_fee}</TOTAL_GENERAL>
-            <TAUX_MOYEN_ANNUEL>${round(loan.get_average_premium_rate([loan], ['average_premium_rate'], contract).get('average_premium_rate', {}).get(loan.id, 0), 2)}</TAUX_MOYEN_ANNUEL>
+            <TAUX_MOYEN_ANNUEL>${round(loan.get_average_premium_rate([loan], ['average_premium_rate'], contract).get('average_premium_rate', {}).get(loan.id, 0), 4)}</TAUX_MOYEN_ANNUEL>
             <TAEA>${round(loan.get_taea_for_contract(contract), 10)}</TAEA>
             <COTISATION_MENSUELLE>${round((total_cotisation_total + total_cotisation_fee) / total_nb_months, 10)}</COTISATION_MENSUELLE>
         </ECHEANCIER_DE_COTISATION_UNIQUE>
@@ -350,12 +353,22 @@
         </DETAILS_DES_GARANTIES>
         <INFORMATIONS_DU_PRET py:if="to_generate">
             <?python
-                type_differe_string = {'': 'Pas de différé', 'partially': 'Différé Partiel', 'fully': 'Différé Total'}
-                type_differe = None
+                type_deferral_string = {'': 'Pas de différé', 'partially': 'Différé Partiel', 'fully': 'Différé Total'}
+                type_deferral = None
+                duration_deferral = 0
                 if loan.kind in ('intermediate', 'balloon'):
-                    type_differe = type_differe_string.get(loan.deferral_balloon_intermediate, 'Type différé non valid')
+                    type_deferral = type_deferral_string.get(loan.deferral_balloon_intermediate, 'Type différé non valid')
+                    duration_deferral = loan.duration - 1
                 else:
-                    type_differe = type_differe_string.get(loan.deferral, 'Type différé non valid')
+                    type_deferral = type_deferral_string.get(loan.deferral, 'Type différé non valid')
+                    duration_deferral = loan.deferral_duration
+
+                first_increment_amount = Decimal(0)
+                if loan.increments:
+                    if loan.kind in ('intermediate', 'balloon'):
+                        first_increment_amount = loan.increments[0].payment_amount
+                    else:
+                        first_increment_amount = max([increment.payment_amount for increment in loan.increments])
             ?>
             <ORDRE_DU_PRET>${str(index_loan)}</ORDRE_DU_PRET>
             <MONTANT>${loan.amount}</MONTANT>
@@ -363,9 +376,14 @@
             <TAUX_HORS_ASSURANCE>${loan.rate*100}</TAUX_HORS_ASSURANCE>
             <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
             <DUREE>${loan.duration}</DUREE>
-            <DUREE_DIFFERE>${loan.deferral_duration if loan.deferral_duration else 0}</DUREE_DIFFERE>
-            <TYPE_DE_DIFFERE>${type_differe}</TYPE_DE_DIFFERE>
-            <MONTANT_ECHEANCES_LOYERS>${max([increment.payment_amount for increment in loan.increments]) if loan.increments else 0}</MONTANT_ECHEANCES_LOYERS>
+            <DUREE_DIFFERE>${duration_deferral}</DUREE_DIFFERE>
+            <TYPE_DE_DIFFERE>${type_deferral}</TYPE_DE_DIFFERE>
+            <MONTANT_ECHEANCES_LOYERS>${first_increment_amount}</MONTANT_ECHEANCES_LOYERS>
+            <PALIERS>
+                <PALIER py:for="index_increment, increment in enumerate(loan.increments)">
+                    <VALEUR>Palier ${index_increment + 1}: ${increment.number_of_payments} mois à ${increment.payment_amount}€</VALEUR>
+                </PALIER>
+            </PALIERS>
         </INFORMATIONS_DU_PRET>
     </DOCUMENT>
 </ROOT> 

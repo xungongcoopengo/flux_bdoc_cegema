@@ -211,21 +211,36 @@
         </ORGANISME_PRETEURS>
         <INFORMATIONS_DU_PRET py:if="to_generate">
             <?python
-                type_differe_string = {'': 'Pas de différé', 'partially': 'Différé Partiel', 'fully': 'Différé Total'}
-                type_differe = None
+                type_deferral_string = {'': 'Pas de différé', 'partially': 'Différé Partiel', 'fully': 'Différé Total'}
+                type_deferral = None
+                duration_deferral = 0
                 if loan.kind in ('intermediate', 'balloon'):
-                    type_differe = type_differe_string.get(loan.deferral_balloon_intermediate, 'Type différé non valid')
+                    type_deferral = type_deferral_string.get(loan.deferral_balloon_intermediate, 'Type différé non valid')
+                    duration_deferral = loan.duration - 1
                 else:
-                    type_differe = type_differe_string.get(loan.deferral, 'Type différé non valid')
+                    type_deferral = type_deferral_string.get(loan.deferral, 'Type différé non valid')
+                    duration_deferral = loan.deferral_duration
+
+                first_increment_amount = Decimal(0)
+                if loan.increments:
+                    if loan.kind in ('intermediate', 'balloon'):
+                        first_increment_amount = loan.increments[0].payment_amount
+                    else:
+                        first_increment_amount = max([increment.payment_amount for increment in loan.increments])
             ?>
             <MONTANT>${loan.amount}</MONTANT>
             <TYPE_DE_PRET>${loan.kind_string}</TYPE_DE_PRET>
             <TAUX_HORS_ASSURANCE>${loan.rate*100}</TAUX_HORS_ASSURANCE>
             <OBJET_PRET>${loan.extra_data_string.get('objet_du_pret', '')}</OBJET_PRET>
-            <DUREE>${loan.duration} ${loan.duration_unit_string}</DUREE>
-            <DUREE_DIFFERE>${loan.deferral_duration if loan.deferral_duration else '0'} ${loan.duration_unit_string}</DUREE_DIFFERE>
-            <TYPE_DE_DIFFERE>${type_differe}</TYPE_DE_DIFFERE>
-            <MONTANT_ECHEANCES_LOYERS>${max([increment.payment_amount for increment in loan.increments]) if loan.increments else 0}</MONTANT_ECHEANCES_LOYERS>
+            <DUREE>${loan.duration}</DUREE>
+            <DUREE_DIFFERE>${duration_deferral}</DUREE_DIFFERE>
+            <TYPE_DE_DIFFERE>${type_deferral}</TYPE_DE_DIFFERE>
+            <MONTANT_ECHEANCES_LOYERS>${first_increment_amount}</MONTANT_ECHEANCES_LOYERS>
+            <PALIERS>
+                <PALIER py:for="index_increment, increment in enumerate(loan.increments)">
+                    <VALEUR>Palier ${index_increment + 1}: ${increment.number_of_payments} mois à ${increment.payment_amount}€</VALEUR>
+                </PALIER>
+            </PALIERS>
             <MONTANT_ECRETEMENT></MONTANT_ECRETEMENT>
             <DATE_EFFET_PRET>${loan.funds_release_date.strftime('%d/%m/%Y')}</DATE_EFFET_PRET>
         </INFORMATIONS_DU_PRET>    
@@ -414,7 +429,7 @@
             <TOTAL_GENERAL_COTISATION_ANNUELLE_S>${total_cotisation_total_standard + total_cotisation_total_extra_premium}</TOTAL_GENERAL_COTISATION_ANNUELLE_S>
             <TOTAL_GENERAL_DONT_OPTIONS_S>${total_cotisation_option_standard + total_cotisation_option_extra_premium}</TOTAL_GENERAL_DONT_OPTIONS_S>
             <TAUX_MOYEN_SD>Action Cegema: Comment alimenter ce champs?</TAUX_MOYEN_SD>
-            <TAUX_MOYEN_S>${round(loan.get_average_premium_rate([loan], ['average_premium_rate'], contract).get('average_premium_rate', {}).get(loan.id, 0), 2)}</TAUX_MOYEN_S>
+            <TAUX_MOYEN_S>${round(loan.get_average_premium_rate([loan], ['average_premium_rate'], contract).get('average_premium_rate', {}).get(loan.id, 0), 4)}</TAUX_MOYEN_S>
             <TYPE_DE_REGLEMENT>${'CRD' if contract.extra_datas and contract.extra_datas[-1].extra_data_values.get('tarif_sur_capital', None) == 'crd' else 'CI'}</TYPE_DE_REGLEMENT>
             <ECHEANCIERS_DES_COTISATIONS>
                 <ECHEANCIER_DES_COTISATIONS py:for="index_year, year in enumerate(contract_years)">
