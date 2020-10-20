@@ -33,6 +33,8 @@
             cur_start_date = contract.initial_start_date
             end_date = cur_start_date
             for option in contract.get_all_options():
+                if option.status != 'active':
+                    continue
                 shares = [s for s in option.get_shares_at_date(effective_date, False) if s.loan == loan and s.share]
                 if shares:
                     loan_options.append(option)
