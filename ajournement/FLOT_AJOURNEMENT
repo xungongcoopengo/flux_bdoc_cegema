@@ -12,10 +12,29 @@
             covered_element_party = covered_element.party if covered_element else None
             subscriber = contract.subscriber if contract else None
             subscriber_address = subscriber.get_address() if subscriber else None
-            to_generate = template and contract and subscriber and covered_element and covered_element_party
+            underwritings = contract.underwritings
+            to_generate = template and contract and subscriber and covered_element and covered_element_party and underwritings
+
+            model_name = template.code
+            underwriting_level_2 = None
+            underwriting_level_3 = None
+            for underwriting in underwritings:
+                if underwriting.level.code == 'niveau_1_2':
+                    underwriting_level_2 = underwriting
+                elif underwriting.level.code == 'niveau_3':
+                    underwriting_level_3 = underwriting
+            if underwriting_level_2 and underwriting_level_3:
+                if underwriting_level_2.decision.status in ('postponed', 'denied') and underwriting_level_3.decision.status == 'postponed' and underwriting_level_3.current_aeras_eligibility == 'eligible' and any('medicale' in underwriting_option.decision.code for underwriting_option in underwriting_level_3.underwriting_options):
+                    model_name = 'EMPRUNTEUR_AJOURNEMENT_ADHESION_NIVEAU_III'
+            elif underwriting_level_2 and not underwriting_level_3:
+                if underwriting_level_2.decision.status == 'postponed' and any('medicale' in underwriting_option.decision.code for underwriting_option in underwriting_level_2.underwriting_options):
+                    if underwriting_level_2.current_aeras_eligibility == 'eligible':
+                        model_name = 'EMPRUNTEUR_AJOURNEMENT_ADHESION_NIVEAU_II_OK'
+                    else:
+                        model_name = 'EMPRUNTEUR_AJOURNEMENT_ADHESION_NIVEAU_II_KO'
         ?>
         <TECHDATA py:if="to_generate">
-            <MODELE>${template.code}</MODELE>
+            <MODELE>${model_name}</MODELE>
             <STATUS_DOCUMENT></STATUS_DOCUMENT>
             <LISTE_CONTRATS>
                 <NUM_CONTRAT>${contract.id}</NUM_CONTRAT>
@@ -127,23 +146,16 @@
             <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
         </ADHERENT>
-        <DECISION py:if="to_generate">
+        <BODY py:if="to_generate">
             <?python
                 mois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
                 postponed_date = ''
                 additional_demands_list = []
                 additional_demands = ''
-                refused_level_2 = False
-                refused_level_3 = False
-                is_aeras_eligible = False
-                is_refused_medical = False
                 for underwriting in contract.underwritings:
                     if underwriting.postponed_date:
                         month_name = mois[int(underwriting.postponed_date.strftime('%m')) - 1]
                         postponed_date = month_name + ' ' + underwriting.postponed_date.strftime('%Y')
-                    refused_level_2 = (underwriting.decision and underwriting.decision.status == 'denied' and underwriting.level and underwriting.level.code == 'niveau_1_2') or refused_level_2
-                    refused_level_3 = (underwriting.decision and underwriting.decision.status == 'denied' and underwriting.level and underwriting.level.code == 'niveau_3') or refused_level_3
-                    is_refused_medical = (underwriting.decision and underwriting.decision.code == 'contrat_refuse_medical') or is_refused_medical
                 for doc in contract.document_request_lines:
                     if doc.added_manually:
                         additional_demands_list.append(doc.rec_name)
@@ -155,10 +167,17 @@
             ?>
             <DATE_AJOURNEMENT>${postponed_date}</DATE_AJOURNEMENT>
             <DEMANDE_COMPLEMENTAIRE>${additional_demands}</DEMANDE_COMPLEMENTAIRE>
-            <REFUS_NIVEAU_2>${'O' if refused_level_2 else 'N'}</REFUS_NIVEAU_2>
-            <REFUS_NIVEAU_3>${'O' if refused_level_3 else 'N'}</REFUS_NIVEAU_3>
-            <ELIGIBILITE_AERAS>${'O' if is_aeras_eligible else 'N'}</ELIGIBILITE_AERAS>
-            <MOTIF_MEDICAL>${'O' if is_refused_medical else 'N'}</MOTIF_MEDICAL>
-        </DECISION>
+        </BODY>
+        <LISTES_DES_PIECES py:if="to_generate">
+            <LISTE_DE_PIECE>
+                <?python
+                    pieces = []
+                    for doc in contract.document_request_lines:
+                        if doc.rec_name:
+                            pieces.append(doc.rec_name)
+                ?>
+                <PIECE py:for="piece in pieces">${piece}</PIECE>
+            </LISTE_DE_PIECE>
+        </LISTES_DES_PIECES>
     </DOCUMENT>
 </ROOT> 

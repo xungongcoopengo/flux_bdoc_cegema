@@ -53,7 +53,7 @@
                     next_date = coog_date.add_year(cur_start_date, 1, True)
                     cur_end_date = min(end_date, coog_date.add_day(next_date, -1))
                     nb_months = max(coog_date.number_of_months_between(cur_start_date, cur_end_date), 1)
-                    periods = contract.get_future_invoices(contract, cur_start_date, cur_end_date) 
+                    periods = contract.get_future_invoices(contract, cur_start_date, cur_end_date)
                     cotisation_dc_ptia = Decimal(0)
                     cotisation_itip = Decimal(0)
                     cotisation_option = Decimal(0)
@@ -66,7 +66,6 @@
                                 next_month_date = detail['start'] + relativedelta.relativedelta(months=1)
                                 first_not_null_invoice_date = datetime(day=5, month=next_month_date.month, year=next_month_date.year)
                             premium = detail.get('premium', None)
-                            coverage_code = premium.option.coverage.code if premium and premium.option and premium.option.coverage else 'empty_code'
                             coverage_code = 'empty_code'
                             if premium:
                                 if premium.option and premium.option.coverage:
@@ -107,7 +106,7 @@
             <MODELE>${template.code}</MODELE>
             <STATUS_DOCUMENT></STATUS_DOCUMENT>
             <LISTE_CONTRATS>
-                <NUM_CONTRAT>${contract.id}</NUM_CONTRAT>
+                <NUM_CONTRAT>${str(contract.external_number) + '-' + str(contract.id)}</NUM_CONTRAT>
                 <PERIMETRE>EMP</PERIMETRE>
                 <STATUT_CONTRAT></STATUT_CONTRAT>
                 <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
@@ -195,15 +194,21 @@
         </TECHDATA>
         <QR_CODE py:if="to_generate">
             <TYPE_DOCUMENT>${template.name}</TYPE_DOCUMENT>
-            <NUM_CONTRAT>${contract.id}</NUM_CONTRAT>
+            <NUM_CONTRAT>${str(contract.external_number) + '-' + str(contract.id)}</NUM_CONTRAT>
             <NUM_FORMALITE></NUM_FORMALITE>
         </QR_CODE>
         <GENERAL py:if="to_generate">
-            <IDENTIFIANT_ASSURE></IDENTIFIANT_ASSURE>
+            <?python
+                client_identifier = None
+                for identifier in covered_element_party.identifiers:
+                    if identifier.type == 'espace_client':
+                        client_identifier = identifier.code
+            ?>
+            <IDENTIFIANT_ASSURE>${client_identifier}</IDENTIFIANT_ASSURE>
             <NUM_ADHESION>${contract.contract_number or contract.quote_number}</NUM_ADHESION>
             <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
-            <DATE_EFFET_GARANTIES>${contract.initial_start_date.strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
+            <DATE_EFFET_GARANTIES>${max(loan.funds_release_date, contract.initial_start_date).strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
         </GENERAL>
         <COURTIER py:if="to_generate">
             <NOM_COURTIER>${contract.broker.name if contract.broker else ''}</NOM_COURTIER>
@@ -369,13 +374,17 @@
                     duration_deferral = loan.deferral_duration
 
                 first_increment_amount = Decimal(0)
+                loan_increments = []
                 if loan.increments:
+                    loan_increments = loan.increments
                     first_increment_amount = loan.increments[0].payment_amount
                     if loan.kind not in ('intermediate', 'balloon'):
                         not_deferral_increment = [increment for increment in loan.increments if increment.deferral not in ['fully', 'partially']] 
                         if not_deferral_increment:
                             first_increment_amount = not_deferral_increment[0].payment_amount
-           ?>
+                            if loan.loan_kind.code in ('PRT_AMOR', 'PRT_AMORTZ'):
+                                loan_increments = not_deferral_increment
+?>
             <ORDRE_DU_PRET>${str(index_loan)}</ORDRE_DU_PRET>
             <MONTANT>${loan.amount}</MONTANT>
             <TYPE_DE_PRET>${loan.kind_string}</TYPE_DE_PRET>
@@ -386,8 +395,8 @@
             <TYPE_DE_DIFFERE>${type_deferral}</TYPE_DE_DIFFERE>
             <MONTANT_ECHEANCES_LOYERS>${first_increment_amount}</MONTANT_ECHEANCES_LOYERS>
             <PALIERS>
-                <PALIER py:for="index_increment, increment in enumerate(loan.increments)">
-                    <VALEUR>${"Palier "+ str(index_increment + 1) + ": " + str(increment.number_of_payments) + " mois à "+ str(increment.payment_amount)  + "€" if len(loan.increments) > 1 else str(increment.payment_amount) + "€"}</VALEUR>
+                <PALIER py:for="index_increment, increment in enumerate(loan_increments)">
+                    <VALEUR>${"Palier "+ str(index_increment + 1) + ": " + str(increment.number_of_payments) + " mois à "+ str(increment.payment_amount)  + "€" if len(loan_increments) > 1 else str(increment.payment_amount) + "€"}</VALEUR>
                 </PALIER>
             </PALIERS>
         </INFORMATIONS_DU_PRET>
