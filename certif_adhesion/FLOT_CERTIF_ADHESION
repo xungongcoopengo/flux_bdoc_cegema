@@ -205,16 +205,36 @@
                         client_identifier = identifier.code
             ?>
             <IDENTIFIANT_ASSURE>${client_identifier}</IDENTIFIANT_ASSURE>
-            <NUM_ADHESION>${contract.contract_number or contract.quote_number}</NUM_ADHESION>
+            <NUM_ADHESION>${str(contract.external_number) + '-' + str(contract.id)}</NUM_ADHESION>
             <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
-            <DATE_EFFET_GARANTIES>${max(loan.funds_release_date, contract.initial_start_date).strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
+            <DATE_EFFET_GARANTIES>${contract.initial_start_date.strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
         </GENERAL>
         <COURTIER py:if="to_generate">
-            <NOM_COURTIER>${contract.broker.name if contract.broker else ''}</NOM_COURTIER>
-            <NUM_TELEPHONE>${contract.broker.phone or contract.broker.mobile if contract.broker else ''}</NUM_TELEPHONE>
-            <EMAIL>${contract.broker.email if contract.broker else ''}</EMAIL>
-            <CODE_COURTIER>${contract.broker.code if contract.broker else ''}</CODE_COURTIER>
+            <?python
+                broker_name = None
+                broker_phone = None
+                broker_email = None
+                broker_code = None
+                broker_broker_code = None
+                if contract.broker and contract.broker.party:
+                    broker_name = contract.broker.party.name
+                    broker_phone = contract.broker.party.phone
+                    broker_email = contract.broker.party.email
+                    broker_code = contract.broker.party.code
+                    broker_broker_code = contract.broker.party.broker_code
+                elif contract.broker:
+                    broker_name = contract.broker.name
+                    broker_phone = contract.broker.phone
+                    broker_email = contract.broker.email
+                    broker_code = contract.broker.code
+                    broker_broker_code = contract.broker.code
+            ?>
+            <NOM_COURTIER>${broker_name}</NOM_COURTIER>
+            <NUM_TELEPHONE>${broker_phone}</NUM_TELEPHONE>
+            <EMAIL>${broker_email}</EMAIL>
+            <CODE>${broker_code}</CODE>
+            <CODE_COURTIER>${broker_broker_code}</CODE_COURTIER>
         </COURTIER>
         <EMPRUNTEUR_ASSURE py:if="to_generate">
             <CIVILITE>${covered_element_party.gender_string}</CIVILITE>
@@ -384,7 +404,7 @@
                             first_increment_amount = not_deferral_increment[0].payment_amount
                             if loan.loan_kind.code in ('PRT_AMOR', 'PRT_AMORTZ'):
                                 loan_increments = not_deferral_increment
-?>
+            ?>
             <ORDRE_DU_PRET>${str(index_loan)}</ORDRE_DU_PRET>
             <MONTANT>${loan.amount}</MONTANT>
             <TYPE_DE_PRET>${loan.kind_string}</TYPE_DE_PRET>

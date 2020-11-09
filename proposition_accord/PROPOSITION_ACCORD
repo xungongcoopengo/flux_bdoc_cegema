@@ -45,8 +45,6 @@
             for option in contract.get_all_options(with_declined=True):
                 shares = [s for s in option.get_shares_at_date(contract.initial_start_date, False) if s.loan == loan]
                 if shares:
-                    options_extra_premiums[option.coverage.code] = [extra_premium.motive.name for extra_premium in option.extra_premiums] if option.extra_premiums else []
-                    options_exclusions[option.coverage.code] = [exclusion.exclusion.name for exclusion in option.exclusions] if option.exclusions else []
                     if option.coverage.code in codes_options.keys():
                         loan_options_code[option.coverage.code] = shares[-1].share
                     elif option.coverage.code in codes_mno_sports.keys() and shares[-1].share > 0:
@@ -60,19 +58,21 @@
                                 loan_mno_sport_code[option.coverage.code] = ''
                         elif option.coverage.code == 'slade_sport':
                                 loan_mno_sport_code[option.coverage.code] = 'Sport +'
-                elif loan in [share.loan for share in option.loan_shares]:
-                    if option.coverage.code in codes_options.keys():
-                        loan_options_code[option.coverage.code] = None
-                    elif option.coverage.code in codes_mno_sports.keys():
-                        loan_mno_sport_code[option.coverage.code] = 'Sérénité / Sérénité + / Sport +'
             if underwriting:
                 decision_assurer = underwriting.decision.name if underwriting.decision else ''
                 if underwriting.underwriting_options:
                     for cuo in underwriting.underwriting_options:
+                        options_extra_premiums[cuo.option.coverage.code] = [extra_premium.motive.name for extra_premium in cuo.extra_premiums] if cuo.extra_premiums else []
+                        options_exclusions[cuo.option.coverage.code] = [exclusion.comment for exclusion in cuo.exclusions] if cuo.exclusions else []
                         if cuo.option.coverage.code in codes_options.keys():
                             loan_options_decision[cuo.option.coverage.code] = cuo.decision.name if cuo.decision else ''
+                            if cuo.decision.status == 'denied' and cuo.option.coverage.code in loan_options_code.keys():
+                                loan_options_code[cuo.option.coverage.code] = None
                         elif cuo.option.coverage.code in codes_mno_sports.keys():
                             loan_mno_sport_decision[cuo.option.coverage.code] = cuo.decision.name if cuo.decision else ''
+                            if cuo.decision.status == 'denied' and cuo.option.coverage.code in loan_mno_sport_code.keys():
+                                loan_mno_sport_code[cuo.option.coverage.code] = 'Sérénité / Sérénité + / Sport +'
+
         ?>
         <TECHDATA py:if="to_generate">
             <MODELE>${template.code}</MODELE>
@@ -166,7 +166,14 @@
             <NUM_CONTRAT>${str(contract.external_number) + '-' + str(contract.id)}</NUM_CONTRAT>
         </QR_CODE>
         <GENERAL py:if="to_generate">
-            <NUM_ADHESION>${contract.contract_number or contract.quote_number}</NUM_ADHESION>
+            <?python
+                client_identifier = None
+                for identifier in covered_element_party.identifiers:
+                    if identifier.type == 'espace_client':
+                        client_identifier = identifier.code
+            ?>
+            <IDENTIFIANT_ASSURE>${client_identifier}</IDENTIFIANT_ASSURE>
+            <NUM_ADHESION>${str(contract.external_number)}</NUM_ADHESION>
             <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
             <NUM_PAC>${str(contract.contract_number or contract.quote_number) + '0' + str(index_loan) + '-1'}</NUM_PAC>
@@ -263,11 +270,11 @@
                         <VALEUR>${extra_premium_motive}</VALEUR>
                     </MOTIF_SURPRIME_IT>
                 </MOTIF_SURPRIME>
-                <MOTIF_EXCLUSION>
-                    <MOTIF_EXCLUSION_IT py:for="exclusion_motive in options_exclusions.get(garantie_code, [])">
-                        <VALEUR>${exclusion_motive}</VALEUR>
-                    </MOTIF_EXCLUSION_IT>
-                </MOTIF_EXCLUSION>
+                <CONTENU_EXCLUSION>
+                    <CONTENU_EXCLUSION_IT py:for="exclusion_comment in options_exclusions.get(garantie_code, [])">
+                        <VALEUR>${exclusion_comment}</VALEUR>
+                    </CONTENU_EXCLUSION_IT>
+                </CONTENU_EXCLUSION>
             </DETAIL_DE_GARANTIE>
         </DETAILS_DES_GARANTIES>
         <OPTIONS py:if="to_generate">
@@ -289,16 +296,16 @@
             type_ipt = ''
             type_ippro = ''
             for s in [s for option in contract.get_all_options() for s in option.get_shares_at_date(contract.initial_start_date) if s.loan == loan and s.share]:
-                if s.extra_data_string.get('franchise_itt_slade', None):
+                if s.extra_data_string.get('franchise_itt_slade', None) and loan_options_code.get('slade_itt', None):
                     franchise_itt = s.extra_data_string.get('franchise_itt_slade', '')
-                if s.extra_data_string.get('franchise_pe_slade', None):
+                if s.extra_data_string.get('franchise_pe_slade', None) and loan_options_code.get('slade_pe', None):
                     franchise_pe = s.extra_data_string.get('franchise_pe_slade', '')
-                if s.extra_data_string.get('carence_pe_slade', None):
+                if s.extra_data_string.get('carence_pe_slade', None) and loan_options_code.get('slade_pe', None):
                     carence_pe = s.extra_data_string.get('carence_pe_slade', '')
                 if s.extra_data_string.get('mode_de_versement', None):
-                    if s.option.coverage.code == 'slade_ipt':
+                    if s.option.coverage.code == 'slade_ipt' and loan_options_code.get('slade_ipt', None):
                         type_ipt = s.extra_data_string.get('mode_de_versement', '')
-                    elif s.option.coverage.code == 'slade_ippro':
+                    elif s.option.coverage.code == 'slade_ippro' and loan_options_code.get('slade_ippro', None):
                         type_ippro = s.extra_data_string.get('mode_de_versement', '')
             ?>
             <FRANCHISE_ITT>${franchise_itt}</FRANCHISE_ITT>
