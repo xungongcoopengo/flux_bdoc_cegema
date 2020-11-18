@@ -72,7 +72,6 @@
                             loan_mno_sport_decision[cuo.option.coverage.code] = cuo.decision.name if cuo.decision else ''
                             if cuo.decision.status == 'denied' and cuo.option.coverage.code in loan_mno_sport_code.keys():
                                 loan_mno_sport_code[cuo.option.coverage.code] = 'Sérénité / Sérénité + / Sport +'
-
         ?>
         <TECHDATA py:if="to_generate">
             <MODELE>${template.code}</MODELE>
