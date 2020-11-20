@@ -126,9 +126,15 @@
         </QR_CODE>
         <GENERAL py:if="to_generate">
             <NOM_PRODUIT></NOM_PRODUIT>
-            <NUM_ADHESION>${contract.contract_number or contract.quote_number}</NUM_ADHESION>
+            <NUM_ADHESION>${str(contract.external_number) + '-' + str(contract.id)}</NUM_ADHESION>
         </GENERAL>
         <ADHERENT py:if="to_generate and subscriber.is_person">
+            <?python
+                client_identifier = None
+                for identifier in covered_element_party.identifiers:
+                    if identifier.type == 'espace_client':
+                        client_identifier = identifier.code
+            ?>
             <CIV_ADH>${subscriber.gender_string}</CIV_ADH>
             <NOM_ADH>${subscriber.name}</NOM_ADH>
             <PRENOM_ADH>${subscriber.first_name}</PRENOM_ADH>
@@ -136,7 +142,7 @@
             <CODE_POSTAL_ADH>${subscriber_address.zip if subscriber_address else ''}</CODE_POSTAL_ADH>
             <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
-            <IDENTIFIANT_ESPACE_ADHERENT></IDENTIFIANT_ESPACE_ADHERENT>
+            <IDENTIFIANT_ESPACE_ADHERENT>${client_identifier}</IDENTIFIANT_ESPACE_ADHERENT>
         </ADHERENT>
         <ADHERENT py:if="to_generate and not subscriber.is_person">
             <RAISON_SOCIALE>${subscriber.name}</RAISON_SOCIALE>
