@@ -208,7 +208,7 @@
             <NUM_ADHESION>${str(contract.external_number) + '-' + str(contract.id)}</NUM_ADHESION>
             <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
-            <DATE_EFFET_GARANTIES>${contract.initial_start_date.strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
+            <DATE_EFFET_GARANTIES>${loan.funds_release_date.strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
         </GENERAL>
         <COURTIER py:if="to_generate">
             <NOM_COURTIER>${contract.broker.name if contract.broker else ''}</NOM_COURTIER>
