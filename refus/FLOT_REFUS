@@ -46,7 +46,7 @@
                             model_name = 'EMPRUNTEUR_REFUS_ADHESION_NIVEAU_II_KO'
                     else:
                         model_name = 'EMPRUNTEUR_REFUS_ADHESION_NON_MEDICAL'
-                        if any('medicale' in underwriting_option.decision.code for underwriting_option in underwriting_level_2.underwriting_opions):
+                        if underwriting_level_2.current_aeras_eligibility == 'eligible':
                             is_aeras_eligible = True
         ?>
         <TECHDATA py:if="to_generate">
