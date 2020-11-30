@@ -24,7 +24,7 @@
                 elif underwriting.level.code == 'niveau_3':
                     underwriting_level_3 = underwriting
             if underwriting_level_2 and underwriting_level_3:
-                if underwriting_level_2.decision.status in ('postponed', 'denied') and underwriting_level_3.decision.status == 'postponed' and underwriting_level_3.current_aeras_eligibility == 'eligible' and any('medicale' in underwriting_option.decision.code for underwriting_option in underwriting_level_3.underwriting_options):
+                if underwriting_level_3.decision.status == 'postponed' and underwriting_level_3.current_aeras_eligibility == 'eligible' and any('medicale' in underwriting_option.decision.code for underwriting_option in underwriting_level_3.underwriting_options):
                     model_name = 'EMPRUNTEUR_AJOURNEMENT_ADHESION_NIVEAU_III'
             elif underwriting_level_2 and not underwriting_level_3:
                 if underwriting_level_2.decision.status == 'postponed' and any('medicale' in underwriting_option.decision.code for underwriting_option in underwriting_level_2.underwriting_options):

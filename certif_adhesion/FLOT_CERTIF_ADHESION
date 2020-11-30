@@ -29,7 +29,7 @@
 
             loan_options = []
             loan_options_code = {}
-            cur_start_date = contract.initial_start_date
+            cur_start_date = max(contract.initial_start_date, loan.funds_release_date)
             end_date = cur_start_date
             for option in contract.get_all_options():
                 shares = [s for s in option.get_shares_at_date(contract.initial_start_date, False) if s.loan == loan and s.share]

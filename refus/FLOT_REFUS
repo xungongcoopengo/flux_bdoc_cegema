@@ -28,7 +28,7 @@
                 elif underwriting.level.code == 'niveau_3':
                     underwriting_level_3 = underwriting
             if underwriting_level_2 and underwriting_level_3:
-                if underwriting_level_2.decision.status == 'denied' and underwriting_level_3.decision.status == 'denied' and underwriting_level_3.current_aeras_eligibility == 'eligible' and any('medicale' in underwriting_option.decision.code for underwriting_option in underwriting_level_3.underwriting_options):
+                if underwriting_level_3.decision.status == 'denied' and underwriting_level_3.current_aeras_eligibility == 'eligible' and any('medicale' in underwriting_option.decision.code for underwriting_option in underwriting_level_3.underwriting_options):
                     model_name = 'EMPRUNTEUR_REFUS_ADHESION_NIVEAU_III'
                     refused_level_2 = True
                     refused_level_3 = True
