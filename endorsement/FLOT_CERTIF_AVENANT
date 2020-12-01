@@ -98,27 +98,32 @@
         <TECHDATA py:if="to_generate">
             <MODELE>${template.code}</MODELE>
             <STATUS_DOCUMENT></STATUS_DOCUMENT>
-            <LISTE_CONTRATS></LISTE_CONTRATS>
-            <NUM_CONTRAT>${str(contract.external_number) + '-' + str(contract.id)}</NUM_CONTRAT>
-            <PERIMETRE>EMP</PERIMETRE>
-            <STATUT_CONTRAT></STATUT_CONTRAT>
-            <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
-            <LISTE_ADHERENT></LISTE_ADHERENT>
-            <NUM_ADHERENT>${subscriber.code}</NUM_ADHERENT>
-            <RAISON_SOCIALE_ADHERENT>${subscriber.name if not subscriber.is_person else ''}</RAISON_SOCIALE_ADHERENT>
-            <NOM_ADHERENT>${subscriber.name if subscriber.is_person else ''}</NOM_ADHERENT>
-            <PRENOM_ADHERENT>${subscriber.first_name if subscriber.is_person else ''}</PRENOM_ADHERENT>
-            <DATE_NAISSANCE_ADHERENT></DATE_NAISSANCE_ADHERENT>
-            <LISTE_ASSURES></LISTE_ASSURES>
-            <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
-            <NOM_ASSURE>${covered_element_party.name}</NOM_ASSURE>
-            <PRENOM_ASSURE>${covered_element_party.first_name}</PRENOM_ASSURE>
-            <DATE_NAISSANCE_ASSURE>${covered_element_party.birth_date.strftime('%Y-%m-%d')}</DATE_NAISSANCE_ASSURE>
-            <LISTE_APPORTEUR></LISTE_APPORTEUR>
-            <NUM_APPORTEUR></NUM_APPORTEUR>
-            <RAISON_SOCIALE_APPORTEUR></RAISON_SOCIALE_APPORTEUR>
-            <NOM_CONTACT_APPORTEUR></NOM_CONTACT_APPORTEUR>
-            <PRENOM_CONTACT_APPORTEUR></PRENOM_CONTACT_APPORTEUR>
+            <LISTE_CONTRATS>
+                <NUM_CONTRAT>${str(contract.external_number) + '-' + str(contract.id)}</NUM_CONTRAT>
+                <PERIMETRE>EMP</PERIMETRE>
+                <STATUT_CONTRAT></STATUT_CONTRAT>
+                <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
+                <LISTE_ADHERENT></LISTE_ADHERENT>
+            </LISTE_CONTRATS>
+            <LISTE_ADHERENT>
+                <NUM_ADHERENT>${subscriber.code}</NUM_ADHERENT>
+                <RAISON_SOCIALE_ADHERENT>${subscriber.name if not subscriber.is_person else ''}</RAISON_SOCIALE_ADHERENT>
+                <NOM_ADHERENT>${subscriber.name if subscriber.is_person else ''}</NOM_ADHERENT>
+                <PRENOM_ADHERENT>${subscriber.first_name if subscriber.is_person else ''}</PRENOM_ADHERENT>
+                <DATE_NAISSANCE_ADHERENT></DATE_NAISSANCE_ADHERENT>
+            </LISTE_ADHERENT>
+            <LISTE_ASSURES>
+                <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
+                <NOM_ASSURE>${covered_element_party.name}</NOM_ASSURE>
+                <PRENOM_ASSURE>${covered_element_party.first_name}</PRENOM_ASSURE>
+                <DATE_NAISSANCE_ASSURE>${covered_element_party.birth_date.strftime('%Y-%m-%d')}</DATE_NAISSANCE_ASSURE>
+            </LISTE_ASSURES>
+            <LISTE_APPORTEUR>
+                <NUM_APPORTEUR></NUM_APPORTEUR>
+                <RAISON_SOCIALE_APPORTEUR></RAISON_SOCIALE_APPORTEUR>
+                <NOM_CONTACT_APPORTEUR></NOM_CONTACT_APPORTEUR>
+                <PRENOM_CONTACT_APPORTEUR></PRENOM_CONTACT_APPORTEUR>
+            </LISTE_APPORTEUR>
             <NUM_PLI></NUM_PLI>
             <ORIGINE>BDOC</ORIGINE>
             <GARANTIES></GARANTIES>
@@ -132,15 +137,17 @@
             <NOM_DESTINATAIRE_PRINCIPAL></NOM_DESTINATAIRE_PRINCIPAL>
             <PRENOM_DESTINATAIRE_PRINCIPAL></PRENOM_DESTINATAIRE_PRINCIPAL>
             <EMAIL_DESTINATAIRE_PRINCIPAL></EMAIL_DESTINATAIRE_PRINCIPAL>
-            <LISTE_DESTINATAIRE_COPIE></LISTE_DESTINATAIRE_COPIE>
-            <NOM_DESTINATAIRE_COPIE></NOM_DESTINATAIRE_COPIE>
-            <PRENOM_DESTINATAIRE_COPIE></PRENOM_DESTINATAIRE_COPIE>
-            <EMAIL_DESTINATAIRE_COPIE></EMAIL_DESTINATAIRE_COPIE>
+            <LISTE_DESTINATAIRE_COPIE>
+                <NOM_DESTINATAIRE_COPIE></NOM_DESTINATAIRE_COPIE>
+                <PRENOM_DESTINATAIRE_COPIE></PRENOM_DESTINATAIRE_COPIE>
+                <EMAIL_DESTINATAIRE_COPIE></EMAIL_DESTINATAIRE_COPIE>
+            </LISTE_DESTINATAIRE_COPIE>
             <PARTENAIRE_TPA></PARTENAIRE_TPA>
             <NIVEAU_CONFIDENTIALITE>N/A</NIVEAU_CONFIDENTIALITE>
             <TYPE_ACTE_GESTION_ASSOCIE></TYPE_ACTE_GESTION_ASSOCIE>
-            <LISTE_PRODUIT></LISTE_PRODUIT>
-            <NOM_PRODUIT></NOM_PRODUIT>
+            <LISTE_PRODUIT>
+                <NOM_PRODUIT></NOM_PRODUIT>
+            </LISTE_PRODUIT>
             <MONTANTS_GARANTIES></MONTANTS_GARANTIES>
             <DOCUMENT_ENTRANT_SORTANT>S</DOCUMENT_ENTRANT_SORTANT>
             <RESEAU_DISTRIBUTION></RESEAU_DISTRIBUTION>
