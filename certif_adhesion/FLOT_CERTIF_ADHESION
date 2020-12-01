@@ -47,7 +47,6 @@
             total_cotisation_fee = Decimal(0)
             total_cotisation_total = Decimal(0)
             contract_years = []
-            first_not_null_invoice_date = None
             if cur_start_date and end_date:
                 while cur_start_date <= end_date:
                     next_date = coog_date.add_year(cur_start_date, 1, True)
@@ -61,10 +60,6 @@
                     cotisation_total = Decimal(0)
                     for period in periods:
                         for detail in [p for p in period['details'] if (p.get('loan', '') == loan or (index_loan == 1 and not p.get('loan', None)))]:
-                            if not first_not_null_invoice_date:
-                                first_not_null_invoice_date = detail['start']
-                                next_month_date = detail['start'] + relativedelta.relativedelta(months=1)
-                                first_not_null_invoice_date = datetime(day=5, month=next_month_date.month, year=next_month_date.year)
                             premium = detail.get('premium', None)
                             coverage_code = 'empty_code'
                             if premium:
@@ -292,7 +287,7 @@
             <DETAIL_DES_CONDITIONS>${'1' if any([o.exclusions or o.extra_premiums for o in loan_options]) else '0'}</DETAIL_DES_CONDITIONS>
         </GARANTIES>
         <ECHEANCIER_DE_COTISATION_UNIQUE py:if="to_generate">
-            <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${first_not_null_invoice_date.strftime('%d/%m/%Y') if first_not_null_invoice_date else ''}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
+            <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${contract.first_payment_date.strftime('%d/%m/%Y') if contract.first_payment_date else ''}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
             <TOTAL_DES_COTISATIONS_DC_PTIA>${total_cotisation_dc_ptia}</TOTAL_DES_COTISATIONS_DC_PTIA>
             <TOTAL_DES_COTISATIONS_IPP_IPT_ITT>${total_cotisation_itip}</TOTAL_DES_COTISATIONS_IPP_IPT_ITT>
             <TOTAL_DES_COTISATIONS_ANNUELLE>${total_cotisation_dc_ptia + total_cotisation_itip + total_cotisation_option}</TOTAL_DES_COTISATIONS_ANNUELLE>
