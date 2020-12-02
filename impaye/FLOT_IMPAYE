@@ -54,7 +54,7 @@
             <GED_NOM_FICHIER>IMPAYE_${datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</GED_NOM_FICHIER>
             <IDENTIFIANT_DOCUMENT_UNIQUE></IDENTIFIANT_DOCUMENT_UNIQUE>
             <PERIMETRE>EMP</PERIMETRE>
-            <TYPE_DOCUMENT>${template.name}</TYPE_DOCUMENT>
+            <TYPE_DOCUMENT>Impayé</TYPE_DOCUMENT>
             <NUM_ADHERENT>${subscriber.code}</NUM_ADHERENT>
             <RAISON_SOCIALE_ADHERENT>${subscriber.name if not subscriber.is_person else ''}</RAISON_SOCIALE_ADHERENT>
             <NOM_ADHERENT>${subscriber.name if subscriber.is_person else ''}</NOM_ADHERENT>
@@ -63,6 +63,7 @@
             <NIVEAU_CONFIDENTIALITE>N/A</NIVEAU_CONFIDENTIALITE>
         </TECHDATA>
         <QR_CODE py:if="to_generate">
+            <TYPE_DOCUMENT>Impayé</TYPE_DOCUMENT>
             <NUM_CONTRAT>${contract.id}</NUM_CONTRAT>
         </QR_CODE>
         <HEADER py:if="to_generate">
