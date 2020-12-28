@@ -51,7 +51,7 @@
             <SIGNE_ELECTRONIQUEMENT>O</SIGNE_ELECTRONIQUEMENT>
             <GED>O</GED>
             <GED_ONBASE>O</GED_ONBASE>
-            <GED_NOM_FICHIER>IMPAYE_${datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</GED_NOM_FICHIER>
+            <GED_NOM_FICHIER>IMPAYE_${datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}</GED_NOM_FICHIER>
             <IDENTIFIANT_DOCUMENT_UNIQUE></IDENTIFIANT_DOCUMENT_UNIQUE>
             <PERIMETRE>EMP</PERIMETRE>
             <TYPE_DOCUMENT>Impayé</TYPE_DOCUMENT>

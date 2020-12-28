@@ -52,7 +52,7 @@
                     next_date = coog_date.add_year(cur_start_date, 1, True)
                     cur_end_date = min(end_date, coog_date.add_day(next_date, -1))
                     nb_months = max(coog_date.number_of_months_between(cur_start_date, cur_end_date), 1)
-                    periods = contract.get_future_invoices(contract, cur_start_date, cur_end_date)
+                    periods = contract._create_future_invoices(contract, cur_start_date, cur_end_date)
                     cotisation_dc_ptia = Decimal(0)
                     cotisation_itip = Decimal(0)
                     cotisation_option = Decimal(0)
@@ -225,7 +225,7 @@
             <VILLE_DE_NAISSANCE>${covered_element_party.birth_city if covered_element_party.birth_city else ''}</VILLE_DE_NAISSANCE>
             <PAYS_DE_NAISSANCE>${covered_element_party.birth_country.name}</PAYS_DE_NAISSANCE>
             <DATE_DE_NAISSANCE>${covered_element_party.birth_date.strftime('%d/%m/%Y')}</DATE_DE_NAISSANCE>
-            <PROFESSION_SPECIFIQUE>${covered_element_party.extra_data_string.get('profession_exacte', 'spec')}</PROFESSION_SPECIFIQUE>
+            <PROFESSION_SPECIFIQUE>${covered_element_party.extra_data_string.get('profession_exacte', '')}</PROFESSION_SPECIFIQUE>
             <CATEGORIE_PROFESSIONNELLE>${covered_element_version.extra_data_string.get('categorie_professionnelle', '')}</CATEGORIE_PROFESSIONNELLE>
             <FUMEUR>${covered_element_version.extra_data_string.get('fumeur', '')}</FUMEUR>
             <SITUATION_FAMILIALE>${covered_element_party.extra_data_string.get('situation_familiale', '')}</SITUATION_FAMILIALE>
@@ -391,7 +391,7 @@
             <MONTANT_ECHEANCES_LOYERS>${first_increment_amount}</MONTANT_ECHEANCES_LOYERS>
             <PALIERS>
                 <PALIER py:for="index_increment, increment in enumerate(loan_increments)">
-                    <VALEUR>${"Palier "+ str(index_increment + 1) + ": " + str(increment.number_of_payments) + " mois à "+ str(increment.payment_amount)  + "€" if len(loan_increments) > 1 else str(increment.payment_amount) + "€"}</VALEUR>
+                    <VALEUR>${"Palier "+ str(index_increment + 1) + ": " + str(increment.number_of_payments) + " mois à "+ ("%.2f" % increment.payment_amount)  + "€" if len(loan_increments) > 1 else ("%.2f" % increment.payment_amount) + "€"}</VALEUR>
                 </PALIER>
             </PALIERS>
         </INFORMATIONS_DU_PRET>
