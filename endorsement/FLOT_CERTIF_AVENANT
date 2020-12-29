@@ -378,12 +378,15 @@
                 if loan.increments:
                     loan_increments = loan.increments
                     first_increment_amount = loan.increments[0].payment_amount
-                    if loan.kind not in ('intermediate', 'balloon'):
-                        not_deferral_increment = [increment for increment in loan.increments if increment.deferral not in ['fully', 'partially']] 
+                    if loan.loan_kind.code not in ('PRT_FINE', 'PRT_REL'):
+                        not_deferral_increment = None
+                        if loan.loan_kind.code in ('PRT_AMOR', 'PRT_AMORTZ'):
+                            not_deferral_increment = [increment for increment in loan.increments if increment.deferral not in ['fully', 'partially']]
+                        elif loan.loan_kind.code == 'PRT_AMORPAL':
+                            not_deferral_increment = [increment for increment in loan.increments if increment.deferral != 'partially']
                         if not_deferral_increment:
                             first_increment_amount = not_deferral_increment[0].payment_amount
-                            if loan.loan_kind.code in ('PRT_AMOR', 'PRT_AMORTZ'):
-                                loan_increments = not_deferral_increment
+                            loan_increments = not_deferral_increment
             ?>
             <ORDRE_DU_PRET>${str(index_loan)}</ORDRE_DU_PRET>
             <MONTANT>${loan.amount}</MONTANT>
