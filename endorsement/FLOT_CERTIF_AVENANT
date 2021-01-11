@@ -292,7 +292,12 @@
             <DETAIL_DES_CONDITIONS>${'1' if any([o.exclusions or o.extra_premiums for o in loan_options]) else '0'}</DETAIL_DES_CONDITIONS>
         </GARANTIES>
         <ECHEANCIER_DE_COTISATION_UNIQUE py:if="to_generate">
-            <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${contract.first_payment_date.strftime('%d/%m/%Y') if contract.first_payment_date else ''}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
+            <?python
+                first_payment_date = max(contract.initial_start_date, loan.funds_release_date)
+                next_month_date = first_payment_date + relativedelta.relativedelta(months=1)
+                first_payment_date = datetime(day=5, month=next_month_date.month, year=next_month_date.year)
+            ?>
+            <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${first_payment_date.strftime('%d/%m/%Y')}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
             <TOTAL_DES_COTISATIONS_DC_PTIA>${total_cotisation_dc_ptia}</TOTAL_DES_COTISATIONS_DC_PTIA>
             <TOTAL_DES_COTISATIONS_IPP_IPT_ITT>${total_cotisation_itip}</TOTAL_DES_COTISATIONS_IPP_IPT_ITT>
             <TOTAL_DES_COTISATIONS_ANNUELLE>${total_cotisation_dc_ptia + total_cotisation_itip + total_cotisation_option}</TOTAL_DES_COTISATIONS_ANNUELLE>
