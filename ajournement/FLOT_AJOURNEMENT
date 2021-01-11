@@ -12,7 +12,12 @@
             covered_element_party = covered_element.party if covered_element else None
             subscriber = contract.subscriber if contract else None
             subscriber_address = subscriber.get_address() if subscriber else None
+
             underwritings = contract.underwritings
+            if origin and origin.__name__ == 'contract.underwriting':
+                if origin.endorsement:
+                    domain = [('endorsement', '=', origin.endorsement)]
+                    underwritings = Pool().get('contract.underwriting').search(domain)
             to_generate = template and contract and subscriber and covered_element and covered_element_party and underwritings
 
             model_name = template.code
@@ -158,7 +163,7 @@
                 postponed_date = ''
                 additional_demands_list = []
                 additional_demands = ''
-                for underwriting in contract.underwritings:
+                for underwriting in underwritings:
                     if underwriting.postponed_date:
                         month_name = mois[int(underwriting.postponed_date.strftime('%m')) - 1]
                         postponed_date = month_name + ' ' + underwriting.postponed_date.strftime('%Y')

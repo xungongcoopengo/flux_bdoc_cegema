@@ -12,14 +12,13 @@
             covered_element_party = covered_element.party if covered_element else None
             subscriber = contract.subscriber if contract else None
             subscriber_address = subscriber.get_address() if subscriber else None
-            underwritings = contract.underwritings
-            to_generate = template and contract and subscriber and covered_element and covered_element_party and underwritings
 
-            def has_motif_medical(options):
-                for option in options:
-                    if 'medical' in option.decision.code or any('medical' in extra_premium.motive.code for extra_premium in option.extra_premiums):
-                        return True
-                return False
+            underwritings = contract.underwritings
+            if origin and origin.__name__ == 'contract.underwriting':
+                if origin.endorsement:
+                    domain = [('endorsement', '=', origin.endorsement)]
+                    underwritings = Pool().get('contract.underwriting').search(domain)
+            to_generate = template and contract and subscriber and covered_element and covered_element_party and underwritings
 
             model_name = template.code
             underwriting_level_2 = None
@@ -28,6 +27,7 @@
             refused_level_3 = False
             is_aeras_eligible = False
             has_medical_modif = False
+
             for underwriting in underwritings:
                 if underwriting.level.code == 'niveau_1_2':
                     underwriting_level_2 = underwriting
