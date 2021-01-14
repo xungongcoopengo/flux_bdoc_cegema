@@ -59,7 +59,7 @@
                     cotisation_fee = Decimal(0)
                     cotisation_total = Decimal(0)
                     for period in periods:
-                        for detail in [p for p in period['details'] if (p.get('loan', '') == loan or (index_loan == 1 and not p.get('loan', None)))]:
+                        for detail in [p for p in period['details'] if (p.get('loan', '') == loan or (p.get('fee', None) and not p.get('loan', None)))]:
                             premium = detail.get('premium', None)
                             coverage_code = 'empty_code'
                             if premium:

@@ -8,12 +8,12 @@
 <ROOT xmlns:py="http://genshi.edgewall.org/">
     <DOCUMENT py:for="contract_loan in objects">
         <?python
-            def extract_invoice(invoice, at_date, loan_id):
+            def extract_invoice(invoice, at_date, loan_id, contract_id):
                 res = {
-                    'options': {},
                     'details': [],
                     'start': invoice['start'],
-                    'loans': {}
+                    'loans': {},
+                    'options': {}
                     }
                 for detail in invoice['details']:
                     cur_premium = detail.get('premium', None)
@@ -39,6 +39,13 @@
 
                     if cur_option and cur_coverage_code not in res['options'].keys() and cur_detail['loan'].id == loan_id:
                         res['options'][cur_coverage_code] = [{'share': s.share, 'extra_data': s.extra_data, 'extra_data_string': s.extra_data_string, 'end_date': s.end_date} for s in cur_option.get_shares_at_date(at_date, False) if s.loan.id == loan_id]
+                        if cur_premium and cur_premium.main_contract and cur_premium.main_contract.id == contract_id:
+                            for ce in cur_premium.main_contract.covered_elements:
+                                for opt in ce.all_options:
+                                    if opt.coverage.code not in res['options'].keys():
+                                        shares = [{'share': s.share, 'extra_data': s.extra_data, 'extra_data_string': s.extra_data_string, 'end_date': s.end_date} for s in opt.get_shares_at_date(at_date, False) if s.loan.id == loan_id]
+                                        if shares:
+                                            res['options'][opt.coverage.code] = shares
 
                         cur_loan = None
                         if cur_detail['loan'] and cur_detail['loan'].id not in res['loans'] and cur_detail['loan'].id == loan_id:
@@ -79,12 +86,14 @@
             contract = contract_loan.contract
             loan = contract_loan.loan
             cur_start_date = contract.initial_start_date
+            effective_date = contract.initial_start_date
             first_payment_date = contract.initial_start_date
             if origin and origin.__name__ == 'contract.underwriting':
                 underwriting = origin
                 if origin.endorsement:
-                    cur_start_date = underwriting.endorsement.endorsement.effective_date
+                    effective_date = underwriting.endorsement.endorsement.effective_date
                     if origin.endorsement.endorsement.definition and origin.endorsement.endorsement.definition.code == 'changement_date_d_effet_du_contrat':
+                        cur_start_date = effective_date
                         first_payment_date = max(cur_start_date, first_payment_date)
             else:
                 underwriting = contract.underwritings[-1] if contract.underwritings else None
@@ -93,7 +102,7 @@
                         underwriting = cu
 
             periods = contract._create_future_invoices(contract, contract.start_date, contract.end_date)
-            periods_underwriting, average_rates = underwriting.get_future_invoices(underwriting.id, callback=extract_invoice, callback_params=[cur_start_date, loan.id])
+            periods_underwriting, average_rates = underwriting.get_future_invoices(underwriting.id, callback=extract_invoice, callback_params=[effective_date, loan.id, contract.id])
             options_after_simulation = {}
             loan_after_simulation = None
             end_date = cur_start_date
@@ -205,7 +214,7 @@
                     cotisation_total_standard_underwriting = Decimal(0)
                     cotisation_total_extra_premium = Decimal(0)
                     for period in periods:
-                        for detail in [d for d in period['details'] if ((d.get('loan', '') == loan or (index_loan == 1 and not d.get('loan', None))) and cur_start_date <= d['start'] <= cur_end_date)]:
+                        for detail in [d for d in period['details'] if ((d.get('loan', '') == loan or (d.get('fee', None) and not d.get('loan', None))) and cur_start_date <= d['start'] <= cur_end_date)]:
                             premium = detail.get('premium', None)
                             coverage_code = premium.option.coverage.code if premium and premium.option and premium.option.coverage else 'empty_code'
                             fee_code = premium.rated_entity.code if premium and premium.rated_entity else 'empty_fee_code'
@@ -220,9 +229,9 @@
                             if 'dossier' in fee_code:
                                 cotisation_fee_document_standard += detail['fee']
                             cotisation_fee_standard += detail['fee']
-                            cotisation_total_standard += detail['total_amount']
+                            cotisation_total_standard += detail['total_amount'] - detail['fee']
                     for period_underwriting in periods_underwriting:
-                        for detail_underwriting in [d for d in period_underwriting['details'] if ((d.get('loan', '') == loan or (index_loan == 1 and not d.get('loan', None))) and cur_start_date <= d['start'] <= cur_end_date)]:
+                        for detail_underwriting in [d for d in period_underwriting['details'] if ((d.get('loan', '') == loan or (d.get('fee', None) and not d.get('loan', None))) and cur_start_date <= d['start'] <= cur_end_date)]:
                             is_extra_premium = detail_underwriting['premium']['is_extra_premium']
                             coverage_code = detail_underwriting['premium']['coverage_code']
                             if coverage_code in ['slade_dc', 'slade_ptia']:
