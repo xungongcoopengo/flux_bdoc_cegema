@@ -250,10 +250,10 @@
                                 else:
                                     cotisation_option_standard_underwriting += detail_underwriting['total_amount']
                             if is_extra_premium:
-                                cotisation_total_extra_premium += detail_underwriting['total_amount']
+                                cotisation_total_extra_premium += detail_underwriting['total_amount'] - detail_underwriting['fee']
                                 cotisation_fee_extra_premium += detail_underwriting['fee']
                             else:
-                                cotisation_total_standard_underwriting += detail_underwriting['total_amount']
+                                cotisation_total_standard_underwriting += detail_underwriting['total_amount'] - detail_underwriting['fee']
                                 cotisation_fee_standard_underwriting += detail_underwriting['fee']
                     if cur_start_date == cur_end_date:
                         contract_years[-1]['cotisation_dc_ptia_standard'] += cotisation_dc_ptia_standard
