@@ -12,7 +12,7 @@
                 res = {
                     'details': [],
                     'start': invoice['start'],
-                    'loans': {},
+                    'loan': {},
                     'options': {}
                     }
                 for detail in invoice['details']:
@@ -48,7 +48,7 @@
                                             res['options'][opt.coverage.code] = shares
 
                         cur_loan = None
-                        if cur_detail['loan'] and cur_detail['loan'].id not in res['loans'] and cur_detail['loan'].id == loan_id:
+                        if cur_detail['loan'] and cur_detail['loan'].id != res['loan'].get('loan_id', None) and cur_detail['loan'].id == loan_id:
                             cur_loan = cur_detail['loan']
                         index_loan = 0
                         for index, current_loan in enumerate(cur_option.parent_contract.used_loans):
@@ -56,6 +56,7 @@
                                 index_loan = index + 1
                         if cur_loan:
                             res['loan'] = {
+                                'loan_id': cur_loan.id,
                                 'loan_index': index_loan,
                                 'loan_number': cur_loan.number,
                                 'loan_lender_name': cur_loan.lender.name if cur_loan.lender else '',
@@ -85,7 +86,7 @@
             template = Pool().get('report.template')(id=doc_template[0])
             contract = contract_loan.contract
             loan = contract_loan.loan
-            cur_start_date = contract.initial_start_date
+            cur_start_date = max(contract.initial_start_date, loan.funds_release_date)
             effective_date = contract.initial_start_date
             first_payment_date = contract.initial_start_date
             if origin and origin.__name__ == 'contract.underwriting':
@@ -177,6 +178,11 @@
             total_cotisation_agis_fee = Decimal(0)
             total_cotisation_document_fee = Decimal(0)
             total_cotisation_brokerage_fee = Decimal(0)
+            cotisation_dc_ptia_before_start_date = Decimal(0)
+            cotisation_itip_before_start_date = Decimal(0)
+            cotisation_option_before_start_date = Decimal(0)
+            cotisation_total_before_start_date = Decimal(0)
+
             for period in periods:
                 for detail in [d for d in period['details'] if (d.get('fee', None) and index_loan == 1 and not d.get('loan', None))]:
                     premium = detail.get('premium', None)
@@ -486,7 +492,7 @@
                 </PALIER>
             </PALIERS>
             <MONTANT_ECRETEMENT></MONTANT_ECRETEMENT>
-            <DATE_EFFET_PRET>${loan_after_simulation.get('loan_funds_release_date', datetime.date.min).strftime('%d/%m/%Y')}</DATE_EFFET_PRET>
+            <DATE_EFFET_PRET>${max(contract.initial_start_date, loan_after_simulation.get('loan_funds_release_date', datetime.date.min)).strftime('%d/%m/%Y')}</DATE_EFFET_PRET>
         </INFORMATIONS_DU_PRET>    
         <DETAILS_DES_GARANTIES py:if="to_generate">
            <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code.keys()">
@@ -575,8 +581,8 @@
             <TAUX_MOYEN_S>${round(average_rates.get(loan.id).get('average_premium_rate').get(loan.id), 4) if average_rates.get(loan.id, None) else 0}</TAUX_MOYEN_S>
             <TYPE_DE_REGLEMENT>${'CRD' if contract.extra_datas and contract.extra_datas[-1].extra_data_values.get('tarif_sur_capital', None) == 'crd' else 'CI'}</TYPE_DE_REGLEMENT>
             <ECHEANCIERS_DES_COTISATIONS>
-                <ECHEANCIER_DES_COTISATIONS py:for="index_year, year in enumerate(contract_years)">
-                    <ECHEANCE>Année ${index_year + 1}</ECHEANCE>
+                <ECHEANCIER_DES_COTISATIONS py:for="year in contract_years">
+                    <ECHEANCE>${year['start_date'].strftime('%d/%m/%Y')}</ECHEANCE>
                     <CAPITAL_RESTANT_DU>${loan.get_outstanding_loan_balance(at_date=max(year['start_date'], loan_after_simulation.get('loan_funds_release_date', datetime.date.min)))}</CAPITAL_RESTANT_DU>
                     <COTISATION_ANNUELLE_DC_PTIA_SD>${year['cotisation_dc_ptia_standard'] if 'cotisation_dc_ptia_standard' in year else Decimal(0)}</COTISATION_ANNUELLE_DC_PTIA_SD>
                     <COTISATION_ANNUELLE_IPP_IPT_ITT_SD>${year['cotisation_itip_standard'] if 'cotisation_itip_standard' in year else Decimal(0)}</COTISATION_ANNUELLE_IPP_IPT_ITT_SD>
