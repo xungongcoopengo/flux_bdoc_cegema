@@ -45,10 +45,27 @@
                 end_date = max(option_end_dates)
             total_nb_months = coog_date.number_of_months_between(contract.initial_start_date, end_date)
 
+            periods = contract._create_future_invoices(contract, contract.initial_start_date, contract.end_date)
+            total_cotisation_fee = Decimal(0)
+            total_cotisation_agis_fee = Decimal(0)
+            total_cotisation_document_fee = Decimal(0)
+            total_cotisation_brokerage_fee = Decimal(0)
+            for period in periods:
+                for detail in [d for d in period['details'] if (d.get('fee', None) and index_loan == 1 and not d.get('loan', None))]:
+                    premium = detail.get('premium', None)
+                    if premium:
+                        fee_code = premium.rated_entity.code if premium and premium.rated_entity else 'empty_fee_code'
+                        if 'adhesion' in fee_code:
+                            total_cotisation_agis_fee += detail['fee']
+                        if 'dossier' in fee_code:
+                            total_cotisation_document_fee += detail['fee']
+                        if 'courtage' in fee_code:
+                            total_cotisation_brokerage_fee += detail['fee']
+                        total_cotisation_fee += detail['fee']
+
             total_cotisation_dc_ptia = Decimal(0)
             total_cotisation_itip = Decimal(0)
             total_cotisation_option = Decimal(0)
-            total_cotisation_fee = Decimal(0)
             total_cotisation_total = Decimal(0)
             contract_years = []
             if cur_start_date and end_date:
@@ -56,14 +73,12 @@
                     next_date = coog_date.add_year(cur_start_date, 1, True)
                     cur_end_date = min(end_date, coog_date.add_day(next_date, -1))
                     nb_months = max(coog_date.number_of_months_between(cur_start_date, cur_end_date), 1)
-                    periods = contract._create_future_invoices(contract, cur_start_date, cur_end_date)
                     cotisation_dc_ptia = Decimal(0)
                     cotisation_itip = Decimal(0)
                     cotisation_option = Decimal(0)
-                    cotisation_fee = Decimal(0)
                     cotisation_total = Decimal(0)
                     for period in periods:
-                        for detail in [p for p in period['details'] if (p.get('loan', '') == loan or (p.get('fee', None) and not p.get('loan', None)))]:
+                        for detail in [d for d in period['details'] if (d.get('loan', '') == loan and cur_start_date <= d['start'] <= cur_end_date)]:
                             premium = detail.get('premium', None)
                             coverage_code = 'empty_code'
                             if premium:
@@ -78,7 +93,6 @@
                             if coverage_code in ['slade_mno', 'slade_sport']:
                                 cotisation_option += detail['total_amount'] - detail['fee']
                             cotisation_total += detail['total_amount'] - detail['fee']
-                            cotisation_fee += detail['fee']
                     if cur_start_date == cur_end_date:
                         contract_years[-1]['cotisation_dc_ptia'] += cotisation_dc_ptia
                         contract_years[-1]['cotisation_itip'] += cotisation_itip
@@ -97,7 +111,6 @@
                     total_cotisation_dc_ptia += cotisation_dc_ptia
                     total_cotisation_itip += cotisation_itip
                     total_cotisation_option += cotisation_option
-                    total_cotisation_fee += cotisation_fee
                     total_cotisation_total += cotisation_total
                     cur_start_date = next_date
         ?>
@@ -302,7 +315,8 @@
             <TOTAL_DES_COTISATIONS_IPP_IPT_ITT>${total_cotisation_itip}</TOTAL_DES_COTISATIONS_IPP_IPT_ITT>
             <TOTAL_DES_COTISATIONS_ANNUELLE>${total_cotisation_dc_ptia + total_cotisation_itip + total_cotisation_option}</TOTAL_DES_COTISATIONS_ANNUELLE>
             <TOTAL_DES_COTISATIONS_DONT_OPTIONS>${total_cotisation_option}</TOTAL_DES_COTISATIONS_DONT_OPTIONS>
-            <FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>${total_cotisation_fee}</FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>
+            <FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>${total_cotisation_agis_fee + total_cotisation_document_fee}</FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>
+            <FRAIS_COURTAGE>${total_cotisation_brokerage_fee}</FRAIS_COURTAGE>
             <TOTAL_GENERAL>${total_cotisation_total + total_cotisation_fee}</TOTAL_GENERAL>
             <TAUX_MOYEN_ANNUEL>${round(loan.get_average_premium_rate([loan], ['average_premium_rate'], contract).get('average_premium_rate', {}).get(loan.id, 0), 4)}</TAUX_MOYEN_ANNUEL>
             <TAEA>${round(loan.get_taea_for_contract(contract), 10)}</TAEA>

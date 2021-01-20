@@ -101,7 +101,7 @@
                     if cu.status == 'waiting_client' and cu.decision.status == 'accepted_with_conditions':
                         underwriting = cu
 
-            periods = contract._create_future_invoices(contract, contract.start_date, contract.end_date)
+            periods = contract._create_future_invoices(contract, contract.initial_start_date, contract.end_date)
             periods_underwriting, average_rates = underwriting.get_future_invoices(underwriting.id, callback=extract_invoice, callback_params=[effective_date, loan.id, contract.id])
             options_after_simulation = {}
             loan_after_simulation = None
@@ -173,6 +173,23 @@
                             if cuo.decision.status == 'denied' and coverage_code in loan_mno_sport_code.keys():
                                 loan_mno_sport_code[coverage_code] = 'Sérénité / Sérénité + / Sport +'
 
+            total_cotisation_fee = Decimal(0)
+            total_cotisation_agis_fee = Decimal(0)
+            total_cotisation_document_fee = Decimal(0)
+            total_cotisation_brokerage_fee = Decimal(0)
+            for period in periods:
+                for detail in [d for d in period['details'] if (d.get('fee', None) and index_loan == 1 and not d.get('loan', None))]:
+                    premium = detail.get('premium', None)
+                    if premium:
+                        fee_code = premium.rated_entity.code if premium and premium.rated_entity else 'empty_fee_code'
+                        if 'adhesion' in fee_code:
+                            total_cotisation_agis_fee += detail['fee']
+                        if 'dossier' in fee_code:
+                            total_cotisation_document_fee += detail['fee']
+                        if 'courtage' in fee_code:
+                            total_cotisation_brokerage_fee += detail['fee']
+                        total_cotisation_fee += detail['fee']
+
             total_cotisation_dc_ptia_standard = Decimal(0)
             total_cotisation_dc_ptia_standard_underwriting = Decimal(0)
             total_cotisation_dc_ptia_extra_premium = Decimal(0)
@@ -182,11 +199,6 @@
             total_cotisation_option_standard = Decimal(0)
             total_cotisation_option_standard_underwriting = Decimal(0)
             total_cotisation_option_extra_premium = Decimal(0)
-            total_cotisation_fee_standard = Decimal(0)
-            total_cotisation_fee_standard_underwriting = Decimal(0)
-            total_cotisation_fee_extra_premium = Decimal(0)
-            total_cotisation_fee_agis_standard = Decimal(0)
-            total_cotisation_fee_document_standard = Decimal(0)
             total_cotisation_total_standard = Decimal(0)
             total_cotisation_total_standard_underwriting = Decimal(0)
             total_cotisation_total_extra_premium = Decimal(0)
@@ -205,33 +217,22 @@
                     cotisation_option_standard = Decimal(0)
                     cotisation_option_standard_underwriting = Decimal(0)
                     cotisation_option_extra_premium = Decimal(0)
-                    cotisation_fee_standard = Decimal(0)
-                    cotisation_fee_standard_underwriting = Decimal(0)
-                    cotisation_fee_extra_premium = Decimal(0)
-                    cotisation_fee_agis_standard = Decimal(0)
-                    cotisation_fee_document_standard = Decimal(0)
                     cotisation_total_standard = Decimal(0)
                     cotisation_total_standard_underwriting = Decimal(0)
                     cotisation_total_extra_premium = Decimal(0)
                     for period in periods:
-                        for detail in [d for d in period['details'] if ((d.get('loan', '') == loan or (d.get('fee', None) and not d.get('loan', None))) and cur_start_date <= d['start'] <= cur_end_date)]:
+                        for detail in [d for d in period['details'] if (d.get('loan', '') == loan and cur_start_date <= d['start'] <= cur_end_date)]:
                             premium = detail.get('premium', None)
                             coverage_code = premium.option.coverage.code if premium and premium.option and premium.option.coverage else 'empty_code'
-                            fee_code = premium.rated_entity.code if premium and premium.rated_entity else 'empty_fee_code'
                             if coverage_code in ['slade_dc', 'slade_ptia']:
                                 cotisation_dc_ptia_standard += detail['total_amount']
                             if coverage_code in ['slade_itt', 'slade_ipt', 'slade_ipp', 'slade_ippro', 'slade_pe']:
                                 cotisation_itip_standard += detail['total_amount']
                             if coverage_code in ['slade_mno', 'slade_sport']:
                                 cotisation_option_standard += detail['total_amount']
-                            if 'adhesion' in fee_code:
-                                cotisation_fee_agis_standard += detail['fee']
-                            if 'dossier' in fee_code:
-                                cotisation_fee_document_standard += detail['fee']
-                            cotisation_fee_standard += detail['fee']
                             cotisation_total_standard += detail['total_amount'] - detail['fee']
                     for period_underwriting in periods_underwriting:
-                        for detail_underwriting in [d for d in period_underwriting['details'] if ((d.get('loan', '') == loan or (d.get('fee', None) and not d.get('loan', None))) and cur_start_date <= d['start'] <= cur_end_date)]:
+                        for detail_underwriting in [d for d in period_underwriting['details'] if (d.get('loan', '') == loan and cur_start_date <= d['start'] <= cur_end_date)]:
                             is_extra_premium = detail_underwriting['premium']['is_extra_premium']
                             coverage_code = detail_underwriting['premium']['coverage_code']
                             if coverage_code in ['slade_dc', 'slade_ptia']:
@@ -251,10 +252,8 @@
                                     cotisation_option_standard_underwriting += detail_underwriting['total_amount']
                             if is_extra_premium:
                                 cotisation_total_extra_premium += detail_underwriting['total_amount'] - detail_underwriting['fee']
-                                cotisation_fee_extra_premium += detail_underwriting['fee']
                             else:
                                 cotisation_total_standard_underwriting += detail_underwriting['total_amount'] - detail_underwriting['fee']
-                                cotisation_fee_standard_underwriting += detail_underwriting['fee']
                     if cur_start_date == cur_end_date:
                         contract_years[-1]['cotisation_dc_ptia_standard'] += cotisation_dc_ptia_standard
                         contract_years[-1]['cotisation_dc_ptia_standard_underwriting'] += cotisation_dc_ptia_standard_underwriting
@@ -265,9 +264,6 @@
                         contract_years[-1]['cotisation_option_standard'] += cotisation_option_standard
                         contract_years[-1]['cotisation_option_standard_underwriting'] += cotisation_option_standard_underwriting
                         contract_years[-1]['cotisation_option_extra_premium'] += cotisation_option_extra_premium
-                        contract_years[-1]['cotisation_fee_standard'] += cotisation_fee_standard
-                        contract_years[-1]['cotisation_fee_standard_underwriting'] += cotisation_fee_standard_underwriting
-                        contract_years[-1]['cotisation_fee_extra_premium'] += cotisation_fee_extra_premium
                         contract_years[-1]['cotisation_total_standard'] += cotisation_total_standard
                         contract_years[-1]['cotisation_total_standard_underwriting'] += cotisation_total_standard_underwriting
                         contract_years[-1]['cotisation_total_extra_premium'] += cotisation_total_extra_premium
@@ -284,9 +280,6 @@
                                 'cotisation_option_standard': cotisation_option_standard,
                                 'cotisation_option_standard_underwriting': cotisation_option_standard_underwriting,
                                 'cotisation_option_extra_premium': cotisation_option_extra_premium,
-                                'cotisation_fee_standard': cotisation_fee_standard,
-                                'cotisation_fee_standard_underwriting': cotisation_fee_standard_underwriting,
-                                'cotisation_fee_extra_premium': cotisation_fee_extra_premium,
                                 'cotisation_total_standard': cotisation_total_standard,
                                 'cotisation_total_standard_underwriting': cotisation_total_standard_underwriting,
                                 'cotisation_total_extra_premium': cotisation_total_extra_premium,
@@ -300,11 +293,6 @@
                     total_cotisation_option_standard += cotisation_option_standard
                     total_cotisation_option_standard_underwriting += cotisation_option_standard_underwriting
                     total_cotisation_option_extra_premium += cotisation_option_extra_premium
-                    total_cotisation_fee_standard += cotisation_fee_standard
-                    total_cotisation_fee_standard_underwriting += cotisation_fee_standard_underwriting
-                    total_cotisation_fee_extra_premium += cotisation_fee_extra_premium
-                    total_cotisation_fee_agis_standard += cotisation_fee_agis_standard
-                    total_cotisation_fee_document_standard += cotisation_fee_document_standard
                     total_cotisation_total_standard += cotisation_total_standard
                     total_cotisation_total_standard_underwriting += cotisation_total_standard_underwriting
                     total_cotisation_total_extra_premium += cotisation_total_extra_premium
@@ -413,8 +401,9 @@
             <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
             <NUM_PAC>${str(contract.contract_number or contract.quote_number) + '0' + str(index_loan) + '-1'}</NUM_PAC>
-            <FRAIS_AGIS>${total_cotisation_fee_agis_standard}</FRAIS_AGIS>
-            <FRAIS_DOSSIER>${total_cotisation_fee_document_standard}</FRAIS_DOSSIER>
+            <FRAIS_AGIS>${total_cotisation_agis_fee}</FRAIS_AGIS>
+            <FRAIS_DOSSIER>${total_cotisation_document_fee}</FRAIS_DOSSIER>
+            <FRAIS_COURTAGE>${total_cotisation_brokerage_fee}</FRAIS_COURTAGE>
         </GENERAL>
         <ADHERENT py:if="to_generate and subscriber.is_person" >
             <NOM_ADH>${subscriber.name}</NOM_ADH>
