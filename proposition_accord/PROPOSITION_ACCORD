@@ -94,7 +94,7 @@
                 if origin.endorsement:
                     effective_date = underwriting.endorsement.endorsement.effective_date
                     if origin.endorsement.endorsement.definition and origin.endorsement.endorsement.definition.code == 'changement_date_d_effet_du_contrat':
-                        cur_start_date = effective_date
+                        cur_start_date = max(effective_date, cur_start_date)
                         first_payment_date = max(cur_start_date, first_payment_date)
             else:
                 underwriting = contract.underwritings[-1] if contract.underwritings else None
