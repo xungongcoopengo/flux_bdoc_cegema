@@ -195,6 +195,55 @@
                         if 'courtage' in fee_code:
                             total_cotisation_brokerage_fee += detail['fee']
                         total_cotisation_fee += detail['fee']
+                if cur_start_date > contract.initial_start_date:
+                    for detail in [d for d in period['details'] if (d.get('loan', '') == loan and contract.initial_start_date <= d['start'] < cur_start_date)]:
+                        premium = detail.get('premium', None)
+                        coverage_code = 'empty_code'
+                        if premium:
+                            if premium.option and premium.option.coverage:
+                                coverage_code = premium.option.coverage.code
+                            elif premium.extra_premium and premium.extra_premium.option and premium.extra_premium.option.coverage:
+                                coverage_code = premium.extra_premium.option.coverage.code
+                        if coverage_code in ['slade_dc', 'slade_ptia']:
+                            cotisation_dc_ptia_before_start_date += detail['total_amount'] - detail['fee']
+                        if coverage_code in ['slade_itt', 'slade_ipt', 'slade_ipp', 'slade_ippro', 'slade_pe']:
+                            cotisation_itip_before_start_date += detail['total_amount'] - detail['fee']
+                        if coverage_code in ['slade_mno', 'slade_sport']:
+                            cotisation_option_before_start_date += detail['total_amount'] - detail['fee']
+                        cotisation_total_before_start_date += detail['total_amount'] - detail['fee']
+
+            cotisation_dc_ptia_extra_premium_before_start_date = Decimal(0)
+            cotisation_dc_ptia_standard_underwriting_before_start_date = Decimal(0)
+            cotisation_itip_extra_premium_before_start_date = Decimal(0)
+            cotisation_itip_standard_underwriting_before_start_date = Decimal(0)
+            cotisation_option_extra_premium_before_start_date = Decimal(0)
+            cotisation_option_standard_underwriting_before_start_date = Decimal(0)
+            cotisation_total_extra_premium_before_start_date = Decimal(0)
+            cotisation_total_standard_underwriting_before_start_date = Decimal(0)
+            if cur_start_date > contract.initial_start_date:
+                for period_underwriting in periods_underwriting:
+                    for detail_underwriting in [d for d in period_underwriting['details'] if (d.get('loan', '') == loan and contract.initial_start_date <= d['start'] < cur_start_date)]:
+                        is_extra_premium = detail_underwriting['premium']['is_extra_premium']
+                        coverage_code = detail_underwriting['premium']['coverage_code']
+                        if coverage_code in ['slade_dc', 'slade_ptia']:
+                            if is_extra_premium:
+                                cotisation_dc_ptia_extra_premium_before_start_date += detail_underwriting['total_amount'] - detail_underwriting['fee']
+                            else:
+                                cotisation_dc_ptia_standard_underwriting_before_start_date += detail_underwriting['total_amount'] - detail_underwriting['fee']
+                        if coverage_code in ['slade_itt', 'slade_ipt', 'slade_ipp', 'slade_ippro', 'slade_pe']:
+                            if is_extra_premium:
+                                cotisation_itip_extra_premium_before_start_date += detail_underwriting['total_amount'] - detail_underwriting['fee']
+                            else:
+                                cotisation_itip_standard_underwriting_before_start_date += detail_underwriting['total_amount'] - detail_underwriting['fee']
+                        if coverage_code in ['slade_mno', 'slade_sport']:
+                            if is_extra_premium:
+                                cotisation_option_extra_premium_before_start_date += detail_underwriting['total_amount'] - detail_underwriting['fee']
+                            else:
+                                cotisation_option_standard_underwriting_before_start_date += detail_underwriting['total_amount'] - detail_underwriting['fee']
+                        if is_extra_premium:
+                            cotisation_total_extra_premium_before_start_date += detail_underwriting['total_amount'] - detail_underwriting['fee']
+                        else:
+                            cotisation_total_standard_underwriting_before_start_date += detail_underwriting['total_amount'] - detail_underwriting['fee']
 
             total_cotisation_dc_ptia_standard = Decimal(0)
             total_cotisation_dc_ptia_standard_underwriting = Decimal(0)
@@ -231,11 +280,11 @@
                             premium = detail.get('premium', None)
                             coverage_code = premium.option.coverage.code if premium and premium.option and premium.option.coverage else 'empty_code'
                             if coverage_code in ['slade_dc', 'slade_ptia']:
-                                cotisation_dc_ptia_standard += detail['total_amount']
+                                cotisation_dc_ptia_standard += detail['total_amount'] - detail['fee']
                             if coverage_code in ['slade_itt', 'slade_ipt', 'slade_ipp', 'slade_ippro', 'slade_pe']:
-                                cotisation_itip_standard += detail['total_amount']
+                                cotisation_itip_standard += detail['total_amount'] - detail['fee']
                             if coverage_code in ['slade_mno', 'slade_sport']:
-                                cotisation_option_standard += detail['total_amount']
+                                cotisation_option_standard += detail['total_amount'] - detail['fee']
                             cotisation_total_standard += detail['total_amount'] - detail['fee']
                     for period_underwriting in periods_underwriting:
                         for detail_underwriting in [d for d in period_underwriting['details'] if (d.get('loan', '') == loan and cur_start_date <= d['start'] <= cur_end_date)]:
@@ -243,19 +292,19 @@
                             coverage_code = detail_underwriting['premium']['coverage_code']
                             if coverage_code in ['slade_dc', 'slade_ptia']:
                                 if is_extra_premium:
-                                    cotisation_dc_ptia_extra_premium += detail_underwriting['total_amount']
+                                    cotisation_dc_ptia_extra_premium += detail_underwriting['total_amount'] - detail_underwriting['fee']
                                 else:
-                                    cotisation_dc_ptia_standard_underwriting += detail_underwriting['total_amount']
+                                    cotisation_dc_ptia_standard_underwriting += detail_underwriting['total_amount'] - detail_underwriting['fee']
                             if coverage_code in ['slade_itt', 'slade_ipt', 'slade_ipp', 'slade_ippro', 'slade_pe']:
                                 if is_extra_premium:
-                                    cotisation_itip_extra_premium += detail_underwriting['total_amount']
+                                    cotisation_itip_extra_premium += detail_underwriting['total_amount'] - detail_underwriting['fee']
                                 else:
-                                    cotisation_itip_standard_underwriting += detail_underwriting['total_amount']
+                                    cotisation_itip_standard_underwriting += detail_underwriting['total_amount'] - detail_underwriting['fee']
                             if coverage_code in ['slade_mno', 'slade_sport']:
                                 if is_extra_premium:
-                                    cotisation_option_extra_premium += detail_underwriting['total_amount']
+                                    cotisation_option_extra_premium += detail_underwriting['total_amount'] - detail_underwriting['fee']
                                 else:
-                                    cotisation_option_standard_underwriting += detail_underwriting['total_amount']
+                                    cotisation_option_standard_underwriting += detail_underwriting['total_amount'] - detail_underwriting['fee']
                             if is_extra_premium:
                                 cotisation_total_extra_premium += detail_underwriting['total_amount'] - detail_underwriting['fee']
                             else:
@@ -303,7 +352,35 @@
                     total_cotisation_total_standard_underwriting += cotisation_total_standard_underwriting
                     total_cotisation_total_extra_premium += cotisation_total_extra_premium
                     cur_start_date = next_date
-         ?>
+
+            if cotisation_total_before_start_date > 0:
+                contract_years[0]['cotisation_dc_ptia_standard'] += cotisation_dc_ptia_before_start_date
+                contract_years[0]['cotisation_itip_standard'] += cotisation_itip_before_start_date
+                contract_years[0]['cotisation_option_standard'] += cotisation_option_before_start_date
+                contract_years[0]['cotisation_total_standard'] += cotisation_total_before_start_date
+                total_cotisation_dc_ptia_standard += cotisation_dc_ptia_before_start_date
+                total_cotisation_itip_standard += cotisation_itip_before_start_date
+                total_cotisation_option_standard += cotisation_option_before_start_date
+                total_cotisation_total_standard += cotisation_total_before_start_date
+            if cotisation_total_extra_premium_before_start_date > 0:
+                contract_years[0]['cotisation_dc_ptia_extra_premium'] += cotisation_dc_ptia_extra_premium_before_start_date
+                contract_years[0]['cotisation_itip_extra_premium'] += cotisation_itip_extra_premium_before_start_date
+                contract_years[0]['cotisation_option_extra_premium'] += cotisation_option_extra_premium_before_start_date
+                contract_years[0]['cotisation_total_extra_premium'] += cotisation_total_extra_premium_before_start_date
+                total_cotisation_dc_ptia_extra_premium += cotisation_dc_ptia_standard_underwriting_before_start_date
+                total_cotisation_itip_extra_premium += cotisation_itip_extra_premium_before_start_date
+                total_cotisation_option_extra_premium += cotisation_option_extra_premium_before_start_date
+                total_cotisation_total_extra_premium += cotisation_total_extra_premium_before_start_date
+            if cotisation_total_standard_underwriting_before_start_date > 0:
+                contract_years[0]['cotisation_dc_ptia_standard_underwriting'] += cotisation_dc_ptia_standard_underwriting_before_start_date
+                contract_years[0]['cotisation_itip_standard_underwriting'] += cotisation_itip_standard_underwriting_before_start_date
+                contract_years[0]['cotisation_option_standard_underwriting'] += cotisation_option_standard_underwriting_before_start_date
+                contract_years[0]['cotisation_total_standard_underwriting'] += cotisation_total_standard_underwriting_before_start_date
+                total_cotisation_dc_ptia_standard_underwriting += cotisation_dc_ptia_standard_underwriting_before_start_date
+                total_cotisation_itip_standard_underwriting += cotisation_itip_standard_underwriting_before_start_date
+                total_cotisation_option_standard_underwriting += cotisation_option_standard_underwriting_before_start_date
+                total_cotisation_total_standard_underwriting += cotisation_total_standard_underwriting_before_start_date
+    ?>
         <TECHDATA py:if="to_generate">
             <MODELE>${template.code}</MODELE>
             <STATUS_DOCUMENT></STATUS_DOCUMENT>
