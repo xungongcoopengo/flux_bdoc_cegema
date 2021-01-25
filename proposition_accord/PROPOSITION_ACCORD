@@ -380,7 +380,7 @@
                 total_cotisation_itip_standard_underwriting += cotisation_itip_standard_underwriting_before_start_date
                 total_cotisation_option_standard_underwriting += cotisation_option_standard_underwriting_before_start_date
                 total_cotisation_total_standard_underwriting += cotisation_total_standard_underwriting_before_start_date
-    ?>
+        ?>
         <TECHDATA py:if="to_generate">
             <MODELE>${template.code}</MODELE>
             <STATUS_DOCUMENT></STATUS_DOCUMENT>
@@ -389,6 +389,8 @@
                 <PERIMETRE>EMP</PERIMETRE>
                 <STATUT_CONTRAT></STATUT_CONTRAT>
                 <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
+                <MONTANT_PRET>${loan_after_simulation.get('loan_amount', '')}</MONTANT_PRET>
+                <TYPE_DE_PRET>${loan_after_simulation.get('loan_kind_string', '')}</TYPE_DE_PRET>
             </LISTE_CONTRATS>
             <LISTE_ADHERENT>
                 <NUM_ADHERENT>${subscriber.code}</NUM_ADHERENT>
@@ -562,10 +564,10 @@
             <DUREE>${loan_after_simulation.get('loan_duration', '')}</DUREE>
             <DUREE_DIFFERE>${duration_deferral}</DUREE_DIFFERE>
             <TYPE_DE_DIFFERE>${type_deferral}</TYPE_DE_DIFFERE>
-            <MONTANT_ECHEANCES_LOYERS>${first_increment_amount}</MONTANT_ECHEANCES_LOYERS>
+            <MONTANT_ECHEANCES_LOYERS>${str("%.2f" % first_increment_amount).replace('.', ',')}</MONTANT_ECHEANCES_LOYERS>
             <PALIERS>
                 <PALIER py:for="index_increment, increment in enumerate(loan_increments)">
-                    <VALEUR>${"Palier "+ str(index_increment + 1) + ": " + str(increment['number_of_payments']) + " mois à "+ str(increment['payment_amount'])  + "€" if len(loan_increments) > 1 else str(increment['payment_amount']) + "€"}</VALEUR>
+                    <VALEUR>${"Palier "+ str(index_increment + 1) + " : " + str(increment['number_of_payments']) + " mois à "+ str("%.2f" % increment['payment_amount']).replace('.', ',')  + "€" if len(loan_increments) > 1 else str("%.2f" % increment['payment_amount']).replace('.', ',') + "€"}</VALEUR>
                 </PALIER>
             </PALIERS>
             <MONTANT_ECRETEMENT></MONTANT_ECRETEMENT>

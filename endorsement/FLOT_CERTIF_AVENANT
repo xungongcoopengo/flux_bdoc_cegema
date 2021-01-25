@@ -346,7 +346,8 @@
             <TOTAL_DES_COTISATIONS_IPP_IPT_ITT>${total_cotisation_itip}</TOTAL_DES_COTISATIONS_IPP_IPT_ITT>
             <TOTAL_DES_COTISATIONS_ANNUELLE>${total_cotisation_dc_ptia + total_cotisation_itip + total_cotisation_option}</TOTAL_DES_COTISATIONS_ANNUELLE>
             <TOTAL_DES_COTISATIONS_DONT_OPTIONS>${total_cotisation_option}</TOTAL_DES_COTISATIONS_DONT_OPTIONS>
-            <FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>${total_cotisation_agis_fee + total_cotisation_document_fee}</FRAIS_D_ADHESION_ET_FRAIS_DE_DOSSIER>
+            <FRAIS_AGIS>${total_cotisation_agis_fee}</FRAIS_AGIS>
+            <FRAIS_DOSSIER>${total_cotisation_document_fee}</FRAIS_DOSSIER>
             <FRAIS_COURTAGE>${total_cotisation_brokerage_fee}</FRAIS_COURTAGE>
             <TOTAL_GENERAL>${total_cotisation_total + total_cotisation_fee}</TOTAL_GENERAL>
             <TAUX_MOYEN_ANNUEL>${round(loan.get_average_premium_rate([loan], ['average_premium_rate'], contract).get('average_premium_rate', {}).get(loan.id, 0), 4)}</TAUX_MOYEN_ANNUEL>
@@ -446,10 +447,10 @@
             <DUREE>${loan.duration}</DUREE>
             <DUREE_DIFFERE>${duration_deferral}</DUREE_DIFFERE>
             <TYPE_DE_DIFFERE>${type_deferral}</TYPE_DE_DIFFERE>
-            <MONTANT_ECHEANCES_LOYERS>${first_increment_amount}</MONTANT_ECHEANCES_LOYERS>
+            <MONTANT_ECHEANCES_LOYERS>${str("%.2f" % first_increment_amount).replace('.', ',')}</MONTANT_ECHEANCES_LOYERS>
             <PALIERS>
                 <PALIER py:for="index_increment, increment in enumerate(loan_increments)">
-                    <VALEUR>${"Palier "+ str(index_increment + 1) + ": " + str(increment.number_of_payments) + " mois à "+ ("%.2f" % increment.payment_amount)  + "€" if len(loan_increments) > 1 else ("%.2f" % increment.payment_amount) + "€"}</VALEUR>
+                    <VALEUR>${"Palier "+ str(index_increment + 1) + " : " + str(increment.number_of_payments) + " mois à "+ str("%.2f" % increment.payment_amount).replace('.', ',') + "€" if len(loan_increments) > 1 else str("%.2f" % increment.payment_amount).replace('.', ',') + "€"}</VALEUR>
                 </PALIER>
             </PALIERS>
         </INFORMATIONS_DU_PRET>
