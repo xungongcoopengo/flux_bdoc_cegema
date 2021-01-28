@@ -429,6 +429,8 @@
                             not_deferral_increment = [increment for increment in loan.increments if increment.deferral not in ['fully', 'partially']]
                         elif loan.loan_kind.code == 'PRT_AMORPAL':
                             not_deferral_increment = [increment for increment in loan.increments if increment.deferral != 'partially']
+                        elif loan.loan_kind.code == 'PRT_PTZ':
+                            not_deferral_increment = [increment for increment in loan_increments if increment.deferral != 'fully']
                         if not_deferral_increment:
                             first_increment_amount = not_deferral_increment[0].payment_amount
                             loan_increments = not_deferral_increment
