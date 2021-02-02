@@ -173,6 +173,8 @@
                             loan_options_decision[coverage_code] = cuo.decision.name if cuo.decision else ''
                             if cuo.decision.status == 'denied' and coverage_code in loan_options_code.keys():
                                 loan_options_code[coverage_code] = None
+                                if coverage_code == 'slade_ptia':
+                                    options_age = None
                         elif coverage_code in codes_mno_sports.keys():
                             loan_mno_sport_decision[coverage_code] = cuo.decision.name if cuo.decision else ''
                             if cuo.decision.status == 'denied' and coverage_code in loan_mno_sport_code.keys():
