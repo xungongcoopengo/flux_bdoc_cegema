@@ -133,7 +133,7 @@
             possible_frequencies = {'month': 'Mensuelle', 'quarter': 'Trimestrielle', 'half_year': 'Semestrielle', 'year': 'Annuelle'}
             codes_options = {'slade_dc': "Décès (DC)", 'slade_ptia': "Perte Totale et Irréversible d'Automonie (PTIA)", 'slade_ipp': "Invalidité Permanente Partielle (IPP)",
                              'slade_ipt': "Invalidité Permanente et Totale (IPT)", 'slade_ippro': "Invalidité Permanente et Totale (IPT)",
-                             'slade_itt': "Incapacité Temporaire et Totale de Travail (ITT)", 'slade_pe': "Perte d'Emploi (PE)"}
+                             'slade_itt': "Incapacité Temporaire Totale de Travail (ITT)", 'slade_pe': "Perte d'Emploi (PE)"}
             codes_mno_sports = {'slade_mno': "Sérénité ou Sérénité +", 'slade_sport': "Sport +"}
             loan_options_code = {}
             loan_options_decision = {}
@@ -141,10 +141,14 @@
             loan_mno_sport_decision = {}
             options_extra_premiums = {}
             options_exclusions = {}
+            options_age = None
             decision_insurer = ''
             for option_code in options_after_simulation.keys():
                 shares = options_after_simulation[option_code]
                 if shares:
+                    cur_option_age = shares[-1]['extra_data'].get('age_de_fin_de_garantie', None)
+                    if cur_option_age and '65' not in cur_option_age:
+                        options_age = cur_option_age
                     if option_code in codes_options.keys():
                         loan_options_code[option_code] = shares[-1]['share']
                     elif option_code in codes_mno_sports.keys() and shares[-1]['share'] > 0:
@@ -574,6 +578,7 @@
             </PALIERS>
             <MONTANT_ECRETEMENT></MONTANT_ECRETEMENT>
             <DATE_EFFET_PRET>${max(contract.initial_start_date, loan_after_simulation.get('loan_funds_release_date', datetime.date.min)).strftime('%d/%m/%Y')}</DATE_EFFET_PRET>
+            <OPTIONS_AGE>${options_age.split(' ')[0] if options_age else None}</OPTIONS_AGE>
         </INFORMATIONS_DU_PRET>    
         <DETAILS_DES_GARANTIES py:if="to_generate">
            <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code.keys()">
