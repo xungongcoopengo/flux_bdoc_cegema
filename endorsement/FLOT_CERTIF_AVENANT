@@ -360,7 +360,7 @@
             <IPP>${'Invalidité Permanente Partielle (IPP)' if loan_options_code.get('slade_ipp', None) else ''}</IPP>
             <IPT>${'Invalidité Permanente et Totale (IPT)' if loan_options_code.get('slade_ipt', None) else ''}</IPT>
             <ITT>${'Incapacité Temporaire Totale de Travail (ITT)' if loan_options_code.get('slade_itt', None) else ''}</ITT>
-            <IPPRO>${'Invalidité Permanente Professionnelle (IPPro)' if loan_options_code.get('slade_ippro', None) else ''}</IPPRO>
+            <IPPRO>${'Invalidité Professionnelle (IPPro)' if loan_options_code.get('slade_ippro', None) else ''}</IPPRO>
             <PE>${"Perte d'Emploi (PE)" if loan_options_code.get('slade_pe', None) else ''}</PE>
             <QUOTITE_DC>${int(loan_options_code.get('slade_dc') * 100) if loan_options_code.get('slade_dc', None) else None}</QUOTITE_DC>
             <QUOTITE_PTIA>${int(loan_options_code.get('slade_ptia') * 100) if loan_options_code.get('slade_ptia', None) else None}</QUOTITE_PTIA>
@@ -400,7 +400,7 @@
                     'slade_dc': 'Décès (DC)',
                     'slade_ptia': "Perte Totale et Irréversible d'Automomie (PTIA)",
                     'slade_ipp': 'Invalidité Permanente Partielle (IPP)',
-                    'slade_ippro': 'Invalidité Permanente Professionnelle (IPPro)',
+                    'slade_ippro': 'Invalidité Professionnelle (IPPro)',
                     'slade_ipt': 'Invalidité Permanente et Totale (IPT)',
                     'slade_itt': 'Incapacité Temporaire Totale de Travail (ITT)',
                     'slade_pe': "Perte d'Emploi (PE)"
