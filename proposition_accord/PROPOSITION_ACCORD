@@ -155,9 +155,9 @@
                         if option_code == 'slade_mno':
                             mno_option = shares[-1]['extra_data'].get('slade_mno_option', None)
                             if mno_option == 'serenite_plus':
-                                loan_mno_sport_code[option_code] = 'Dos/Psy (Sérénité +)'
+                                loan_mno_sport_code[option_code] = 'Sérénité +'
                             elif mno_option == 'serenite':
-                                loan_mno_sport_code[option_code] = 'Dos (Sérénité)'
+                                loan_mno_sport_code[option_code] = 'Sérénité'
                             else:
                                 loan_mno_sport_code[option_code] = ''
                         elif option_code == 'slade_sport':
@@ -178,7 +178,7 @@
                         elif coverage_code in codes_mno_sports.keys():
                             loan_mno_sport_decision[coverage_code] = cuo.decision.name if cuo.decision else ''
                             if cuo.decision.status == 'denied' and coverage_code in loan_mno_sport_code.keys():
-                                loan_mno_sport_code[coverage_code] = 'Sérénité / Sérénité + / Sport +'
+                                loan_mno_sport_decision[coverage_code] = 'Refusée'
 
             total_cotisation_fee = Decimal(0)
             total_cotisation_agis_fee = Decimal(0)
