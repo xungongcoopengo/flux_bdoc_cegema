@@ -246,6 +246,14 @@
                 for identifier in covered_element_party.identifiers:
                     if identifier.type == 'espace_client':
                         client_identifier = identifier.code
+
+                subscription_type = contract.extra_data_values.get('type_de_souscription', None)
+                if 'nouvel_emprunt' in subscription_type:
+                    subscription_type = 'Nouvel emprunt'
+                elif 'hamon' in subscription_type:
+                    subscription_type = 'Hamon'
+                elif 'bourquin' in subscription_type:
+                    subscription_type = 'Bourquin'
             ?>
             <IDENTIFIANT_ASSURE>${client_identifier}</IDENTIFIANT_ASSURE>
             <NUM_ADHESION>${str(contract.external_number) + '-' + str(contract.id)}</NUM_ADHESION>
@@ -253,6 +261,7 @@
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
             <MOTIF_AVENANT>${endorsement.definition.name if endorsement and endorsement.definition else ''}</MOTIF_AVENANT>
             <DATE_EFFET_GARANTIES>${max(contract.initial_start_date, loan.funds_release_date).strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
+            <TYPE_SOUSCRIPTION>${subscription_type}</TYPE_SOUSCRIPTION>
         </GENERAL>
         <COURTIER py:if="to_generate">
             <NOM_COURTIER>${contract.broker.name if contract.broker else ''}</NOM_COURTIER>
