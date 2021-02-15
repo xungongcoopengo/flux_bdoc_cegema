@@ -461,7 +461,7 @@
             <MONTANT_ECHEANCES_LOYERS>${str("%.2f" % first_increment_amount).replace('.', ',')}</MONTANT_ECHEANCES_LOYERS>
             <PALIERS>
                 <PALIER py:for="index_increment, increment in enumerate(loan_increments)">
-                    <VALEUR>${"Palier "+ str(index_increment + 1) + " : " + str(increment.number_of_payments) + " mois à "+ str("%.2f" % increment.payment_amount).replace('.', ',') + "€" if len(loan_increments) > 1 else str("%.2f" % increment.payment_amount).replace('.', ',') + "€"}</VALEUR>
+                    <VALEUR>${"Palier "+ str(index_increment + 1) + " : " + str(increment.number_of_payments) + " mois à "+ str("%.2f" % increment.payment_amount).replace('.', ',') + " €" if len(loan_increments) > 1 else str("%.2f" % increment.payment_amount).replace('.', ',') + " €"}</VALEUR>
                 </PALIER>
             </PALIERS>
         </INFORMATIONS_DU_PRET>
