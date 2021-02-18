@@ -254,6 +254,7 @@
             <IDENTIFIANT_ASSURE>${client_identifier}</IDENTIFIANT_ASSURE>
             <NUM_ADHESION>${str(contract.external_number) + '-' + str(contract.id)}</NUM_ADHESION>
             <NUM_ASSURE>${covered_element_party.code}</NUM_ASSURE>
+            <NUM_PRET>${loan.number}</NUM_PRET>
             <TYPE_ADHESION>${'PARTICULIER' if subscriber.is_person else 'ENTREPRISE'}</TYPE_ADHESION>
             <DATE_EFFET_GARANTIES>${max(contract.initial_start_date, loan.funds_release_date).strftime('%d/%m/%Y')}</DATE_EFFET_GARANTIES>
             <TYPE_SOUSCRIPTION>${subscription_type}</TYPE_SOUSCRIPTION>

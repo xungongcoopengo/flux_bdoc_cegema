@@ -583,7 +583,7 @@
             <OPTIONS_AGE>${options_age.split(' ')[0] if options_age else None}</OPTIONS_AGE>
         </INFORMATIONS_DU_PRET>    
         <DETAILS_DES_GARANTIES py:if="to_generate">
-           <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code.keys()">
+            <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code.keys()">
                 <GARANTIE>${codes_options.get(garantie_code, '')}</GARANTIE>
                 <DECISION_ASSUREUR>${decision_insurer}</DECISION_ASSUREUR>
                 <QUOTITE>${int(loan_options_code.get(garantie_code) * 100) if loan_options_code.get(garantie_code, None) else None}</QUOTITE>
