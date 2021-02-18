@@ -583,11 +583,7 @@
             <OPTIONS_AGE>${options_age.split(' ')[0] if options_age else None}</OPTIONS_AGE>
         </INFORMATIONS_DU_PRET>    
         <DETAILS_DES_GARANTIES py:if="to_generate">
-            <?python
-            order_options = {'slade_dc': 1, 'slade_ptia': 2, 'slade_ipp': 5, 'slade_ipt': 3, 'slade_ippro': 4, 'slade_itt': 6, 'slade_pe': 7}
-            loan_options_code_keys = sorted(loan_options_code.keys(), key=lambda k:order_options[k])
-            ?>
-            <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code_keys">
+           <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code.keys()">
                 <GARANTIE>${codes_options.get(garantie_code, '')}</GARANTIE>
                 <DECISION_ASSUREUR>${decision_insurer}</DECISION_ASSUREUR>
                 <QUOTITE>${int(loan_options_code.get(garantie_code) * 100) if loan_options_code.get(garantie_code, None) else None}</QUOTITE>
