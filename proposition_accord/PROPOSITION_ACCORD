@@ -180,6 +180,10 @@
                             if cuo.decision.status == 'denied' and coverage_code in loan_mno_sport_code.keys():
                                 loan_mno_sport_decision[coverage_code] = 'Refusée'
 
+            if 'slade_ptia' in loan_options_decision.keys() and 'slade_dc' in loan_options_decision.keys():
+                if loan_options_decision['slade_dc'] == 'Acceptée avec conditions' and loan_options_decision['slade_ptia'] in ('Acceptée', 'Accepté'):
+                    loan_options_decision['slade_ptia'] = 'Acceptée avec conditions'
+
             total_cotisation_fee = Decimal(0)
             total_cotisation_agis_fee = Decimal(0)
             total_cotisation_document_fee = Decimal(0)

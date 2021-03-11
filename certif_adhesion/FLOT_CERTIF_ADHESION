@@ -52,7 +52,7 @@
             cotisation_total_before_start_date = Decimal(0)
 
             for period in periods:
-                for detail in [d for d in period['details'] if (d.get('fee', None) and index_loan == 1 and not d.get('loan', None))]:
+                for detail in [d for d in period['details'] if (d.get('fee', None) and not d.get('loan', None))]:
                     premium = detail.get('premium', None)
                     if premium:
                         fee_code = premium.rated_entity.code if premium and premium.rated_entity else 'empty_fee_code'

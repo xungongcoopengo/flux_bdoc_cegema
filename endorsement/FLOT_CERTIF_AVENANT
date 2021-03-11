@@ -9,10 +9,10 @@
     <DOCUMENT py:for="contract_loan in objects">
         <?python
             template = Pool().get('report.template')(id=doc_template[0])
-            endorsement = origin
-            effective_date = endorsement.effective_date if endorsement.effective_date else contract.initial_start_date
             contract = contract_loan.contract
             loan = contract_loan.loan
+            endorsement = origin or contract_loan.contract.latest_endorsement.endorsement
+            effective_date = endorsement.effective_date if endorsement.effective_date else contract.initial_start_date
             index_loan = 0
             for index, current_loan in enumerate(contract.loans):
                 if current_loan.id == loan.id:
@@ -56,7 +56,7 @@
             cotisation_total_before_start_date = Decimal(0)
 
             for period in periods:
-                for detail in [d for d in period['details'] if (d.get('fee', None) and index_loan == 1 and not d.get('loan', None))]:
+                for detail in [d for d in period['details'] if (d.get('fee', None) and effective_date == contract.initial_start_date and not d.get('loan', None))]:
                     premium = detail.get('premium', None)
                     if premium:
                         fee_code = premium.rated_entity.code if premium and premium.rated_entity else 'empty_fee_code'
