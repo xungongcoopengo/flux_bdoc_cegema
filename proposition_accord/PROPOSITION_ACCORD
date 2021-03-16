@@ -167,7 +167,7 @@
                 if underwriting.underwriting_options:
                     for cuo in underwriting.underwriting_options:
                         coverage_code = cuo.coverage.code if cuo.coverage else (cuo.option.coverage.code if cuo.option and cuo.option.coverage else "coverage_code_error")
-                        options_extra_premiums[coverage_code] = [extra_premium.motive.name for extra_premium in cuo.extra_premiums] if cuo.extra_premiums else []
+                        options_extra_premiums[coverage_code] = list(set([extra_premium.motive.name for extra_premium in cuo.extra_premiums])) if cuo.extra_premiums else []
                         options_exclusions[coverage_code] = [exclusion.comment for exclusion in cuo.exclusions] if cuo.exclusions else []
                         if coverage_code in codes_options.keys():
                             loan_options_decision[coverage_code] = cuo.decision.name if cuo.decision else ''

@@ -11,6 +11,7 @@
             template = Pool().get('report.template')(id=doc_template[0])
             contract = contract_loan.contract
             loan = contract_loan.loan
+            latest_underwriting = contract.underwritings[0] if contract.underwritings else None
             index_loan = 0
             for index, current_loan in enumerate(contract.used_loans):
                 if current_loan.id == loan.id:
@@ -115,7 +116,7 @@
                         contract_years[-1]['cotisation_itip'] += cotisation_itip
                         contract_years[-1]['cotisation_option'] += cotisation_option
                         contract_years[-1]['cotisation_total'] += cotisation_total
-                    else:                  
+                    else:
                         contract_years.append({
                                 'start_date': cur_start_date,
                                 'end_date': cur_end_date,
@@ -124,7 +125,7 @@
                                 'cotisation_option': cotisation_option,
                                 'cotisation_total': cotisation_total,
                                 'nb_months': Decimal(nb_months)
-                                })                    
+                                })
                     total_cotisation_dc_ptia += cotisation_dc_ptia
                     total_cotisation_itip += cotisation_itip
                     total_cotisation_option += cotisation_option
@@ -338,7 +339,7 @@
             <OPTIONS_SERENITE>${option_serenite}</OPTIONS_SERENITE>
             <OPTIONS_SPORT>${'Sport +' if 'slade_sport' in loan_options_code.keys() else ''}</OPTIONS_SPORT>
             <OPTIONS_AGE>${option_age}</OPTIONS_AGE>
-            <DETAIL_DES_CONDITIONS>${'1' if any([o.exclusions or o.extra_premiums for o in loan_options]) else '0'}</DETAIL_DES_CONDITIONS>
+            <DETAIL_DES_CONDITIONS>${'1' if latest_underwriting and latest_underwriting.decision and latest_underwriting.decision.status == 'accepted_with_conditions' else '0'}</DETAIL_DES_CONDITIONS>
         </GARANTIES>
         <ECHEANCIER_DE_COTISATION_UNIQUE py:if="to_generate">
             <?python
