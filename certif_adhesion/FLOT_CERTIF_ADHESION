@@ -11,7 +11,8 @@
             template = Pool().get('report.template')(id=doc_template[0])
             contract = contract_loan.contract
             loan = contract_loan.loan
-            latest_underwriting = contract.underwritings[0] if contract.underwritings else None
+            subscription_underwritings = [uw for uw in contract.underwritings if uw._parent == contract]
+            latest_underwriting = subscription_underwritings[0] if subscription_underwritings else None
             index_loan = 0
             for index, current_loan in enumerate(contract.used_loans):
                 if current_loan.id == loan.id:

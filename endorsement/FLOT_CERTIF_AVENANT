@@ -12,7 +12,8 @@
             contract = contract_loan.contract
             loan = contract_loan.loan
             endorsement = origin or contract_loan.contract.latest_endorsement.endorsement
-            current_underwriting = endorsement.underwritings[0] if endorsement.underwritings else None
+            endorsement_underwritings = [uw for uw in endorsement.underwritings if uw._parent.endorsement == endorsement]
+            latest_underwriting = endorsement_underwritings[0] if endorsement_underwritings else None
             effective_date = endorsement.effective_date if endorsement.effective_date else contract.initial_start_date
             index_loan = 0
             for index, current_loan in enumerate(contract.loans):
@@ -344,7 +345,7 @@
             <OPTIONS_SERENITE>${option_serenite}</OPTIONS_SERENITE>
             <OPTIONS_SPORT>${'Sport +' if 'slade_sport' in loan_options_code.keys() else ''}</OPTIONS_SPORT>
             <OPTIONS_AGE>${option_age}</OPTIONS_AGE>
-            <DETAIL_DES_CONDITIONS>${'1' if current_underwriting and current_underwriting.decision and current_underwriting.decision.status == 'accepted_with_conditions' else '0'}</DETAIL_DES_CONDITIONS>
+            <DETAIL_DES_CONDITIONS>${'1' if latest_underwriting and latest_underwriting.decision and latest_underwriting.decision.status == 'accepted_with_conditions' else '0'}</DETAIL_DES_CONDITIONS>
         </GARANTIES>
         <ECHEANCIER_DE_COTISATION_UNIQUE py:if="to_generate">
             <?python
