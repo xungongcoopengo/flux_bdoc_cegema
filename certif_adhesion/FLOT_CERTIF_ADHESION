@@ -344,9 +344,16 @@
         </GARANTIES>
         <ECHEANCIER_DE_COTISATION_UNIQUE py:if="to_generate">
             <?python
-                first_payment_date = max(contract.initial_start_date, loan.funds_release_date)
-                next_month_date = first_payment_date + relativedelta.relativedelta(months=1)
-                first_payment_date = datetime(day=5, month=next_month_date.month, year=next_month_date.year)
+                first_payment_date = datetime.min
+                if contract.first_payment_date and contract.first_payment_date >= loan.funds_release_date:
+                    first_payment_date = contract.first_payment_date
+                else:
+                    first_payment_date = max(contract.initial_start_date, loan.funds_release_date)
+                    if first_payment_date.day > 5:
+                        next_month_date = first_payment_date + relativedelta.relativedelta(months=1)
+                        first_payment_date = datetime(day=5, month=next_month_date.month, year=next_month_date.year)
+                    else:
+                        first_payment_date = datetime(day=5, month=first_payment_date.month, year=first_payment_date.year)
             ?>
             <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${first_payment_date.strftime('%d/%m/%Y')}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
             <TOTAL_DES_COTISATIONS_DC_PTIA>${total_cotisation_dc_ptia}</TOTAL_DES_COTISATIONS_DC_PTIA>

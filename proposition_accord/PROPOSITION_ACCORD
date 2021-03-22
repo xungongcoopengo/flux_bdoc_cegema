@@ -88,14 +88,10 @@
             loan = contract_loan.loan
             cur_start_date = max(contract.initial_start_date, loan.funds_release_date)
             effective_date = contract.initial_start_date
-            first_payment_date = contract.initial_start_date
             if origin and origin.__name__ == 'contract.underwriting':
                 underwriting = origin
                 if origin.endorsement:
                     effective_date = underwriting.endorsement.endorsement.effective_date
-                    if origin.endorsement.endorsement.definition and origin.endorsement.endorsement.definition.code == 'changement_date_d_effet_du_contrat':
-                        cur_start_date = max(effective_date, cur_start_date)
-                        first_payment_date = max(cur_start_date, first_payment_date)
             else:
                 underwriting = contract.underwritings[-1] if contract.underwritings else None
                 for cu in contract.underwritings:
@@ -653,10 +649,17 @@
         </ORGANISME_BENEFICIAIRE>
         <ECHEANCIERS_DES_COTISATIONS_PRET py:if="to_generate">
             <?python
-                first_payment_date = max(first_payment_date, loan_after_simulation.get('loan_funds_release_date', datetime.date.min))
-                if first_payment_date:
-                    next_month_date = first_payment_date + relativedelta.relativedelta(months=1)
-                    first_payment_date = datetime.datetime(day=5, month=next_month_date.month, year=next_month_date.year)
+                first_payment_date = datetime.date.min
+                loan_funds_release_date = loan_after_simulation.get('loan_funds_release_date', datetime.date.min)
+                if contract.first_payment_date and contract.first_payment_date >= loan_funds_release_date:
+                    first_payment_date = contract.first_payment_date
+                else:
+                    first_payment_date = max(contract.initial_start_date, loan_funds_release_date)
+                    if first_payment_date.day > 5:
+                        next_month_date = first_payment_date + relativedelta.relativedelta(months=1)
+                        first_payment_date = datetime.date(day=5, month=next_month_date.month, year=next_month_date.year)
+                    else:
+                        first_payment_date = datetime.date(day=5, month=first_payment_date.month, year=first_payment_date.year)
             ?>    
             <NUMERO_DU_PRET>${loan_after_simulation.get('loan_number', '')}</NUMERO_DU_PRET>
             <PERIODICITE_DES_COTISATIONS>${possible_frequencies.get(loan_after_simulation.get('loan_payment_frequency', ''), '')}</PERIODICITE_DES_COTISATIONS>
