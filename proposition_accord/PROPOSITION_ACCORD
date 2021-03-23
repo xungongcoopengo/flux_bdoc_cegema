@@ -581,6 +581,7 @@
             <MONTANT_ECRETEMENT></MONTANT_ECRETEMENT>
             <DATE_EFFET_PRET>${max(contract.initial_start_date, loan_after_simulation.get('loan_funds_release_date', datetime.date.min)).strftime('%d/%m/%Y')}</DATE_EFFET_PRET>
             <OPTIONS_AGE>${options_age.split(' ')[0] if options_age else None}</OPTIONS_AGE>
+            <SEUIL_3000>${'1' if first_increment_amount > 3000 else '0'}</SEUIL_3000>
         </INFORMATIONS_DU_PRET>    
         <DETAILS_DES_GARANTIES py:if="to_generate">
             <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code.keys()">
