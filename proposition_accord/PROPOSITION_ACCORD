@@ -24,6 +24,7 @@
                     else:
                         cur_option = cur_premium.option if cur_premium.option else None
                     cur_coverage_code = cur_option.coverage.code if cur_premium and cur_option and cur_option.coverage else ''
+                    cur_loan = detail.get('loan', None)
                     cur_detail = {
                         'total_amount': detail['total_amount'],
                         'fee': detail['fee'],
@@ -31,7 +32,7 @@
                             'is_extra_premium': cur_is_extra_premium,
                             'coverage_code': cur_coverage_code
                             },
-                        'loan': detail.get('loan', None),
+                        'loan': cur_loan,
                         'start': detail['start'],
                         'end': detail['end']
                         }
@@ -99,7 +100,8 @@
                         underwriting = cu
 
             periods = contract._create_future_invoices(contract, contract.initial_start_date, contract.end_date)
-            periods_underwriting, average_rates = underwriting.get_future_invoices(underwriting.id, callback=extract_invoice, callback_params=[effective_date, loan.id, contract.id])
+            periods_underwriting, average_rates, crd_loan = underwriting.get_future_invoices(underwriting.id, callback=extract_invoice, callback_params=[effective_date, loan.id, contract.id])
+            cur_crd_loan = crd_loan.get(loan.id, [])
             options_after_simulation = {}
             loan_after_simulation = None
             end_date = cur_start_date
@@ -266,9 +268,11 @@
             contract_years = []
 
             if cur_start_date and end_date:
+                index_year = 0
                 while cur_start_date <= end_date:
                     next_date = coog_date.add_year(cur_start_date, 1, True)
                     cur_end_date = min(end_date, coog_date.add_day(next_date, -1))
+                    crd_year = cur_crd_loan[min(index_year, len(cur_crd_loan)-1)]
                     cotisation_dc_ptia_standard = Decimal(0)
                     cotisation_dc_ptia_standard_underwriting = Decimal(0)
                     cotisation_dc_ptia_extra_premium = Decimal(0)
@@ -330,6 +334,7 @@
                         contract_years[-1]['cotisation_total_extra_premium'] += cotisation_total_extra_premium
                     else:
                         contract_years.append({
+                                'crd_year': crd_year,
                                 'start_date': cur_start_date,
                                 'end_date': cur_end_date,
                                 'cotisation_dc_ptia_standard': cotisation_dc_ptia_standard,
@@ -358,6 +363,7 @@
                     total_cotisation_total_standard_underwriting += cotisation_total_standard_underwriting
                     total_cotisation_total_extra_premium += cotisation_total_extra_premium
                     cur_start_date = next_date
+                    index_year += 1
 
             if cotisation_total_before_start_date > 0:
                 contract_years[0]['cotisation_dc_ptia_standard'] += cotisation_dc_ptia_before_start_date
@@ -397,6 +403,7 @@
                 <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
                 <MONTANT_PRET>${loan_after_simulation.get('loan_amount', '')}</MONTANT_PRET>
                 <TYPE_DE_PRET>${loan_after_simulation.get('loan_kind_string', '')}</TYPE_DE_PRET>
+                <NUMERO_DU_PRET>${loan_after_simulation.get('loan_number', '')}</NUMERO_DU_PRET>
             </LISTE_CONTRATS>
             <LISTE_ADHERENT>
                 <NUM_ADHERENT>${subscriber.code}</NUM_ADHERENT>
@@ -582,7 +589,7 @@
             <DATE_EFFET_PRET>${max(contract.initial_start_date, loan_after_simulation.get('loan_funds_release_date', datetime.date.min)).strftime('%d/%m/%Y')}</DATE_EFFET_PRET>
             <OPTIONS_AGE>${options_age.split(' ')[0] if options_age else None}</OPTIONS_AGE>
             <SEUIL_3000>${'1' if first_increment_amount > 3000 else '0'}</SEUIL_3000>
-        </INFORMATIONS_DU_PRET>    
+        </INFORMATIONS_DU_PRET>
         <DETAILS_DES_GARANTIES py:if="to_generate">
             <DETAIL_DE_GARANTIE py:for="garantie_code in loan_options_code.keys()">
                 <GARANTIE>${codes_options.get(garantie_code, '')}</GARANTIE>
@@ -661,8 +668,7 @@
                         first_payment_date = datetime.date(day=5, month=next_month_date.month, year=next_month_date.year)
                     else:
                         first_payment_date = datetime.date(day=5, month=first_payment_date.month, year=first_payment_date.year)
-            ?>    
-            <NUMERO_DU_PRET>${loan_after_simulation.get('loan_number', '')}</NUMERO_DU_PRET>
+            ?>
             <PERIODICITE_DES_COTISATIONS>${possible_frequencies.get(loan_after_simulation.get('loan_payment_frequency', ''), '')}</PERIODICITE_DES_COTISATIONS>
             <DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${first_payment_date.strftime('%d/%m/%Y') if first_payment_date else ''}</DATE_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
             <TOTAL_GENERAL_DC_PTIA_SD>${total_cotisation_dc_ptia_standard}</TOTAL_GENERAL_DC_PTIA_SD>
@@ -679,7 +685,7 @@
             <ECHEANCIERS_DES_COTISATIONS>
                 <ECHEANCIER_DES_COTISATIONS py:for="year in contract_years">
                     <ECHEANCE>${year['start_date'].strftime('%d/%m/%Y')}</ECHEANCE>
-                    <CAPITAL_RESTANT_DU>${loan.get_outstanding_loan_balance(at_date=max(year['start_date'], loan_after_simulation.get('loan_funds_release_date', datetime.date.min)))}</CAPITAL_RESTANT_DU>
+                    <CAPITAL_RESTANT_DU>${year['crd_year'] if 'crd_year' in year else 'CRD error'}</CAPITAL_RESTANT_DU>
                     <COTISATION_ANNUELLE_DC_PTIA_SD>${year['cotisation_dc_ptia_standard'] if 'cotisation_dc_ptia_standard' in year else Decimal(0)}</COTISATION_ANNUELLE_DC_PTIA_SD>
                     <COTISATION_ANNUELLE_IPP_IPT_ITT_SD>${year['cotisation_itip_standard'] if 'cotisation_itip_standard' in year else Decimal(0)}</COTISATION_ANNUELLE_IPP_IPT_ITT_SD>
                     <DONT_OPTION_SD>${year['cotisation_option_standard'] if 'cotisation_option_standard' in year else Decimal(0)}</DONT_OPTION_SD>

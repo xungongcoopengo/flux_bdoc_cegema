@@ -155,7 +155,7 @@
                 <PERIMETRE>EMP</PERIMETRE>
                 <STATUT_CONTRAT></STATUT_CONTRAT>
                 <DATE_EFFET_CONTRAT></DATE_EFFET_CONTRAT>
-                <LISTE_ADHERENT></LISTE_ADHERENT>
+                <NUM_PRET>${loan.number}</NUM_PRET>
             </LISTE_CONTRATS>
             <LISTE_ADHERENT>
                 <NUM_ADHERENT>${subscriber.code}</NUM_ADHERENT>
