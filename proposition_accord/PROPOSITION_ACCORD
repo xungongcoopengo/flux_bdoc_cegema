@@ -616,6 +616,8 @@
             </OPTION>
         </OPTIONS>
         <GARANTIES_PHRASE py:if="to_generate">
+            <DC>${'Décès (DC)' if loan_options_code.get('slade_dc', None) else ''}</DC>
+            <PTIA>${"Perte Totale et Irréversible d'Autonomie (PTIA)" if loan_options_code.get('slade_ptia', None) else ''}</PTIA>
             <ITT>${'Incapacité Temporaire Totale de Travail (ITT)' if loan_options_code.get('slade_itt', None) else ''}</ITT>
             <IPT>${'Invalidité Permanente et Totale (IPT)' if loan_options_code.get('slade_ipt', None) else ''}</IPT>
             <IPP>${'Invalidité Permanente Partielle (IPP)' if loan_options_code.get('slade_ipp', None) else ''}</IPP>
