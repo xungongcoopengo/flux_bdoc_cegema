@@ -293,11 +293,13 @@
                             coverage_code = premium.option.coverage.code if premium and premium.option and premium.option.coverage else 'empty_code'
                             if coverage_code in ['slade_dc', 'slade_ptia']:
                                 cotisation_dc_ptia_standard += detail['total_amount'] - detail['fee']
+                                cotisation_total_standard += detail['total_amount'] - detail['fee']
                             if coverage_code in ['slade_itt', 'slade_ipt', 'slade_ipp', 'slade_ippro', 'slade_pe']:
                                 cotisation_itip_standard += detail['total_amount'] - detail['fee']
+                                cotisation_total_standard += detail['total_amount'] - detail['fee']
                             if coverage_code in ['slade_mno', 'slade_sport']:
                                 cotisation_option_standard += detail['total_amount'] - detail['fee']
-                            cotisation_total_standard += detail['total_amount'] - detail['fee']
+                                cotisation_total_standard += detail['total_amount'] - detail['fee']
                     for period_underwriting in periods_underwriting:
                         for detail_underwriting in [d for d in period_underwriting['details'] if (d.get('loan', '') == loan and cur_start_date <= d['start'] <= cur_end_date)]:
                             is_extra_premium = detail_underwriting['premium']['is_extra_premium']
