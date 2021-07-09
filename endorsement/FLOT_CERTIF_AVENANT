@@ -333,7 +333,7 @@
                 option_age = ''
                 for option in contract.get_all_options():
                     for share in option.get_shares_at_date(effective_date):
-                        if share.loan == loan:
+                        if share.share and share.loan == loan:
                             if share.extra_data_string.get('slade_mno_option', None):
                                 option_serenite = share.extra_data_string.get('slade_mno_option')
                             if share.extra_data_string.get('age_de_fin_de_garantie', None):
