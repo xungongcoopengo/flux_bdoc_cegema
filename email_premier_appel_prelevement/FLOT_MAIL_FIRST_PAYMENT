@@ -127,7 +127,7 @@
             ?>
             <CIV_ADH>${french_gender}</CIV_ADH>
             <MOIS_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${first_payment_month}</MOIS_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
-            <MONTANT_ECHEANCE_PREMIERE_COTISATION>${contract.get_balance([contract], ['balance_today'], contract.first_payment_date)['balance'][contract.id]} €</MONTANT_ECHEANCE_PREMIERE_COTISATION>
+            <MONTANT_ECHEANCE_PREMIERE_COTISATION>${contract.get_balance([contract], ['balance_today'], contract.first_payment_date)['balance'].get(contract.id, None)}€</MONTANT_ECHEANCE_PREMIERE_COTISATION>
         </CONTENU_DE_L_EMAIL>
     </DOCUMENT>
 </ROOT> 
