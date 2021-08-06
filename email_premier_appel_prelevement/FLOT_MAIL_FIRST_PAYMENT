@@ -110,11 +110,11 @@
             <TYPE_DOCUMENT>${template.name}</TYPE_DOCUMENT>
             <NUM_CONTRAT>${contract.id}</NUM_CONTRAT>
         </QR_CODE>
-        <GENERAL>
+        <GENERAL py:if="to_generate">
             <NOM_PRODUIT></NOM_PRODUIT>
             <NOM_ADHESION></NOM_ADHESION>
         </GENERAL>
-        <CONTENU_DE_L_EMAIL>
+        <CONTENU_DE_L_EMAIL py:if="to_generate">
             <?python
             french_gender = ''
             if covered_element_party.is_person:
@@ -127,7 +127,7 @@
             ?>
             <CIV_ADH>${french_gender}</CIV_ADH>
             <MOIS_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>${first_payment_month}</MOIS_DE_L_ECHEANCE_DE_LA_PREMIERE_COTISATION>
-            <MONTANT_ECHEANCE_PREMIERE_COTISATION>${contract.first_not_null_invoice.invoice.amount_to_pay if contract.first_not_null_invoice and contract.first_not_null_invoice.invoice else ''}€</MONTANT_ECHEANCE_PREMIERE_COTISATION>
+            <MONTANT_ECHEANCE_PREMIERE_COTISATION>${contract.get_balance([contract], ['balance_today'], contract.first_payment_date)['balance'][contract.id]} €</MONTANT_ECHEANCE_PREMIERE_COTISATION>
         </CONTENU_DE_L_EMAIL>
     </DOCUMENT>
 </ROOT> 
