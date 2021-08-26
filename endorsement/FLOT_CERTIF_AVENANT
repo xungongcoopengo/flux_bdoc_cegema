@@ -278,7 +278,7 @@
             <NOM_DE_NAISSANCE>${covered_element_party.birth_name}</NOM_DE_NAISSANCE>
             <PRENOM>${covered_element_party.first_name}</PRENOM>
             <VILLE>${covered_element_address.city if covered_element_address else ''}</VILLE>
-            <CODE_POSTAL>${covered_element_address.zip if covered_element_address else ''}</CODE_POSTAL>
+            <CODE_POSTAL>${covered_element_address.postal_code if covered_element_address else ''}</CODE_POSTAL>
             <ADRESSE>${covered_element_address.street if covered_element_address else ''}</ADRESSE>
             <DEUXIEME_PRENOM>${covered_element_party.second_name}</DEUXIEME_PRENOM>
             <TROISIEME_PRENOM>${covered_element_party.third_name}</TROISIEME_PRENOM>
@@ -308,7 +308,7 @@
             <NOM_ADH>${subscriber.name if subscriber.is_person else ''}</NOM_ADH>
             <PRENOM_ADH>${subscriber.first_name if subscriber.is_person else ''}</PRENOM_ADH>
             <ADRESSE_ADH>${subscriber_address.street if subscriber.is_person and subscriber_address else ''}</ADRESSE_ADH>
-            <CODE_POSTAL_ADH>${subscriber_address.zip if subscriber.is_person and subscriber_address else ''}</CODE_POSTAL_ADH>
+            <CODE_POSTAL_ADH>${subscriber_address.postal_code if subscriber.is_person and subscriber_address else ''}</CODE_POSTAL_ADH>
             <VILLE_ADH>${subscriber_address.city if subscriber.is_person and subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if subscriber.is_person and subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
         </ADHERENT>
@@ -316,7 +316,7 @@
             <RAISON_SOCIALE>${subscriber.name if not subscriber.is_person else ''}</RAISON_SOCIALE>
             <SIREN>${subscriber.siren if not subscriber.is_person else ''}</SIREN>
             <ADRESSE_SCI>${subscriber_address.street if not subscriber.is_person and subscriber_address else ''}</ADRESSE_SCI>
-            <CODE_POSTAL_ADH>${subscriber_address.zip if not subscriber.is_person and subscriber_address else ''}</CODE_POSTAL_ADH>
+            <CODE_POSTAL_ADH>${subscriber_address.postal_code if not subscriber.is_person and subscriber_address else ''}</CODE_POSTAL_ADH>
             <VILLE_ADH>${subscriber_address.city if not subscriber.is_person and subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if not subscriber.is_person and subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
         </ADHERENT_SCI>

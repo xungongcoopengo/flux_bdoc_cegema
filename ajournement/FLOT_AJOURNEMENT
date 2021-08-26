@@ -144,7 +144,7 @@
             <NOM_ADH>${subscriber.name}</NOM_ADH>
             <PRENOM_ADH>${subscriber.first_name}</PRENOM_ADH>
             <ADRESSE_ADH>${subscriber_address.street if subscriber_address else ''}</ADRESSE_ADH>
-            <CODE_POSTAL_ADH>${subscriber_address.zip if subscriber_address else ''}</CODE_POSTAL_ADH>
+            <CODE_POSTAL_ADH>${subscriber_address.postal_code if subscriber_address else ''}</CODE_POSTAL_ADH>
             <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
             <IDENTIFIANT_ESPACE_ADHERENT>${client_identifier}</IDENTIFIANT_ESPACE_ADHERENT>
@@ -153,7 +153,7 @@
             <RAISON_SOCIALE>${subscriber.name}</RAISON_SOCIALE>
             <SIREN>${subscriber.siren}</SIREN>
             <ADRESSE_SCI>${subscriber_address.street if subscriber_address else ''}</ADRESSE_SCI>
-            <CODE_POSTAL_ADH>${subscriber_address.zip if subscriber_address else ''}</CODE_POSTAL_ADH>
+            <CODE_POSTAL_ADH>${subscriber_address.postal_code if subscriber_address else ''}</CODE_POSTAL_ADH>
             <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
         </ADHERENT>

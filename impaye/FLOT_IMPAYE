@@ -73,18 +73,18 @@
             <NOM_ADH>${subscriber.name}</NOM_ADH>
             <PRENOM_ADH>${subscriber.first_name}</PRENOM_ADH>
             <ADRESSE_ADH>${subscriber_address.street if subscriber_address else ''}</ADRESSE_ADH>
-            <CODE_POSTAL_ADH>${subscriber_address.zip if subscriber_address else ''}</CODE_POSTAL_ADH>
+            <CODE_POSTAL_ADH>${subscriber_address.postal_code if subscriber_address else ''}</CODE_POSTAL_ADH>
             <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
             <CIVILITE_ASSURE>${covered_element_party.gender_string}</CIVILITE_ASSURE>
             <NOM_ASSURE>${covered_element_party.name}</NOM_ASSURE>
             <PRENOM_ASSURE>${covered_element_party.first_name}</PRENOM_ASSURE>
             <ADRESSE_ASSURE>${covered_element_address.street if covered_element_address else ''}</ADRESSE_ASSURE>
-            <CODE_POSTAL_ASSURE>${covered_element_address.zip if covered_element_address else ''}</CODE_POSTAL_ASSURE>
+            <CODE_POSTAL_ASSURE>${covered_element_address.postal_code if covered_element_address else ''}</CODE_POSTAL_ASSURE>
             <VILLE_ASSURE>${covered_element_address.city if covered_element_address else ''}</VILLE_ASSURE>
             <NOM_PRETEUR>${loan.lender.name if loan.lender else ''}</NOM_PRETEUR>
             <ADRESSE_PRETEUR>${loan.lender_address.street if loan.lender_address else ''}</ADRESSE_PRETEUR>
-            <CODE_POSTAL_PRETEUR>${loan.lender_address.zip if loan.lender_address else ''}</CODE_POSTAL_PRETEUR>
+            <CODE_POSTAL_PRETEUR>${loan.lender_address.postal_code if loan.lender_address else ''}</CODE_POSTAL_PRETEUR>
             <VILLE_PRETEUR>${loan.lender_address.city if loan.lender_address else ''}</VILLE_PRETEUR>
             <VILLE_ETABLISSEMENT>Villeneuve-Loubet</VILLE_ETABLISSEMENT>
             <DATE_DU_JOUR>${datetime.now().strftime('%d/%m/%Y')}</DATE_DU_JOUR>

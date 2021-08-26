@@ -65,7 +65,7 @@
                                 'loan_lender_agency': cur_loan.lender_address.bank_agency.name if cur_loan.lender_address and cur_loan.lender_address.bank_agency else '',
                                 'loan_lender_address': cur_loan.lender_address.full_address if cur_loan.lender_address else '',
                                 'loan_lender_street': cur_loan.lender_address.street if cur_loan.lender_address else '',
-                                'loan_lender_zip': cur_loan.lender_address.zip if cur_loan.lender_address else '',
+                                'loan_lender_zip': cur_loan.lender_address.postal_code if cur_loan.lender_address else '',
                                 'loan_lender_city': cur_loan.lender_address.city if cur_loan.lender_address else '',
                                 'loan_lender_country': cur_loan.lender_address.country.name if cur_loan.lender_address and cur_loan.lender_address.country else '',
                                 'loan_kind': cur_loan.kind,
@@ -511,7 +511,7 @@
             <NOM_ADH>${subscriber.name}</NOM_ADH>
             <PRENOM_ADH>${subscriber.first_name}</PRENOM_ADH>
             <ADRESSE_ADH>${subscriber_address.street if subscriber_address else ''}</ADRESSE_ADH>
-            <CODE_POSTAL_ADH>${subscriber_address.zip if subscriber_address else ''}</CODE_POSTAL_ADH>
+            <CODE_POSTAL_ADH>${subscriber_address.postal_code if subscriber_address else ''}</CODE_POSTAL_ADH>
             <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
         </ADHERENT>
@@ -519,7 +519,7 @@
             <RAISON_SOCIALE>${subscriber.name}</RAISON_SOCIALE>
             <SIREN>${subscriber.siren}</SIREN>
             <ADRESSE_SCI>${subscriber_address.street if subscriber_address else ''}</ADRESSE_SCI>
-            <CODE_POSTAL_ADH>${subscriber_address.zip if subscriber_address else ''}</CODE_POSTAL_ADH>
+            <CODE_POSTAL_ADH>${subscriber_address.postal_code if subscriber_address else ''}</CODE_POSTAL_ADH>
             <VILLE_ADH>${subscriber_address.city if subscriber_address else ''}</VILLE_ADH>
             <PAYS_ADH>${subscriber_address.country.name if subscriber_address and subscriber_address.country else ''}</PAYS_ADH>
         </ADHERENT_SCI>
@@ -529,7 +529,7 @@
             <NOM_DE_NAISSANCE>${covered_element_party.birth_name}</NOM_DE_NAISSANCE>
             <PRENOM>${covered_element_party.first_name}</PRENOM>
             <VILLE py:if="covered_element_address">${covered_element_address.city}</VILLE>
-            <CODE_POSTAL py:if="covered_element_address">${covered_element_address.zip}</CODE_POSTAL>
+            <CODE_POSTAL py:if="covered_element_address">${covered_element_address.postal_code}</CODE_POSTAL>
             <ADRESSE py:if="covered_element_address">${covered_element_address.street}</ADRESSE>
             <DEUXIEME_PRENOM>${covered_element_party.second_name}</DEUXIEME_PRENOM>
             <TROISIEME_PRENOM>${covered_element_party.third_name}</TROISIEME_PRENOM>

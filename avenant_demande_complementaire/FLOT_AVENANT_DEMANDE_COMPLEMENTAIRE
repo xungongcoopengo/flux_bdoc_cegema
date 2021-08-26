@@ -116,7 +116,7 @@
             <NOM>${subscriber.name}</NOM>
             <PRENOM>${subscriber.first_name}</PRENOM>
             <ADRESSE>${subscriber_address.street if subscriber_address else ''}</ADRESSE>
-            <CODE_POSTAL>${subscriber_address.zip if subscriber_address else ''}</CODE_POSTAL>
+            <CODE_POSTAL>${subscriber_address.postal_code if subscriber_address else ''}</CODE_POSTAL>
             <VILLE>${subscriber_address.city if subscriber_address else ''}</VILLE>
             <ADRESSE_ETABLISSEMENT>679 Avenue de Dr Julien Lefebvre</ADRESSE_ETABLISSEMENT>
             <CODE_POSTAL_ETABLISSMENT>06270</CODE_POSTAL_ETABLISSMENT>
