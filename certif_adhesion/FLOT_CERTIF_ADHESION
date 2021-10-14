@@ -279,7 +279,7 @@
             <TROISIEME_PRENOM>${covered_element_party.third_name}</TROISIEME_PRENOM>
             <DEPARTEMENT_DE_NAISSANCE>${covered_element_party.birth_zip}</DEPARTEMENT_DE_NAISSANCE>
             <VILLE_DE_NAISSANCE>${covered_element_party.birth_city if covered_element_party.birth_city else ''}</VILLE_DE_NAISSANCE>
-            <PAYS_DE_NAISSANCE>${covered_element_party.birth_country.name}</PAYS_DE_NAISSANCE>
+            <PAYS_DE_NAISSANCE>${covered_element_party.birth_country.name if covered_element_party.birth_country else ''}</PAYS_DE_NAISSANCE>
             <DATE_DE_NAISSANCE>${covered_element_party.birth_date.strftime('%d/%m/%Y')}</DATE_DE_NAISSANCE>
             <PROFESSION_SPECIFIQUE>${covered_element_party.extra_data_string.get('profession_exacte', '')}</PROFESSION_SPECIFIQUE>
             <CATEGORIE_PROFESSIONNELLE>${covered_element_version.extra_data_string.get('categorie_professionnelle', '')}</CATEGORIE_PROFESSIONNELLE>
